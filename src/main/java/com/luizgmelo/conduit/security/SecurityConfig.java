@@ -29,6 +29,7 @@ public class SecurityConfig {
             auth -> auth
                 .requestMatchers("/api/users/register").permitAll()
                 .requestMatchers("/api/users/login").permitAll()
+                .requestMatchers("/api/articles/{slug}").permitAll()
                 .anyRequest().authenticated())
         .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class);
 

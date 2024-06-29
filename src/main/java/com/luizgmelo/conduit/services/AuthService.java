@@ -12,8 +12,6 @@ import com.luizgmelo.conduit.dtos.ResponseRegisterLoginDto;
 import com.luizgmelo.conduit.models.User;
 import com.luizgmelo.conduit.repositories.UserRepository;
 
-import jakarta.transaction.Transactional;
-
 @Service
 public class AuthService implements IAuthService {
   @Autowired
