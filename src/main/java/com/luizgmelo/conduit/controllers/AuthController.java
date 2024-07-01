@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.luizgmelo.conduit.dtos.LoginRequestDto;
 import com.luizgmelo.conduit.dtos.RegisterRequestDto;
-import com.luizgmelo.conduit.dtos.ResponseRegisterLoginDto;
+import com.luizgmelo.conduit.dtos.ResponseUserDto;
 import com.luizgmelo.conduit.services.AuthService;
 
 import jakarta.validation.Valid;
@@ -24,13 +24,13 @@ public class AuthController {
 
   @PostMapping("/login")
   public ResponseEntity login(@RequestBody @Valid LoginRequestDto body) {
-    ResponseRegisterLoginDto response = authService.login(body);
+    ResponseUserDto response = authService.login(body);
     return ResponseEntity.status(HttpStatus.OK).body(response);
   }
 
   @PostMapping("/register")
   public ResponseEntity register(@RequestBody @Valid RegisterRequestDto body) {
-    ResponseRegisterLoginDto response = authService.register(body);
+    ResponseUserDto response = authService.register(body);
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
 }
