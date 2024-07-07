@@ -1,6 +1,7 @@
 package com.luizgmelo.conduit.controllers;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +16,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.luizgmelo.conduit.dtos.CommentDto;
+import com.luizgmelo.conduit.models.Article;
 import com.luizgmelo.conduit.models.Comment;
+import com.luizgmelo.conduit.services.ArticleService;
 import com.luizgmelo.conduit.services.CommentService;
 
 @RestController
@@ -25,17 +28,21 @@ public class CommentController {
   @Autowired
   CommentService commentService;
 
+  @Autowired
+  ArticleService articleService;
+
   @GetMapping
-  public ResponseEntity listComments() {
-    List<Comment> comments = commentService.getAllComments();
-    if (comments.size() > 0)
+  public ResponseEntity listComments(@PathVariable("slug") String slug) {
+    Set<Comment> comments = commentService.getAllComments(slug);
+    if (!comments.isEmpty())
       return ResponseEntity.status(HttpStatus.OK).body(comments);
     return ResponseEntity.status(HttpStatus.OK).body("This article does not have comment yet.");
   }
 
   @PostMapping
-  public ResponseEntity sendComment(@RequestBody CommentDto commentDto) {
-    Comment comment = commentService.createComment(commentDto);
+  public ResponseEntity sendComment(@PathVariable("slug") String slug, @RequestBody CommentDto commentDto) {
+    Article currentArticle = articleService.getArticle(slug);
+    Comment comment = commentService.createComment(currentArticle, commentDto);
     return ResponseEntity.status(HttpStatus.OK).body(comment);
   }
 

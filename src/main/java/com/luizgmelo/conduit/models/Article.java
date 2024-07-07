@@ -2,6 +2,7 @@ package com.luizgmelo.conduit.models;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Set;
 import java.util.UUID;
 
 import jakarta.persistence.Column;
@@ -9,6 +10,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
@@ -32,6 +34,9 @@ public class Article {
   private Integer favoritesCounts;
   private String author;
 
+  @OneToMany(mappedBy = "commentFrom")
+  private Set<Comment> comments;
+
   public Article() {
   }
 
@@ -46,6 +51,10 @@ public class Article {
     this.favorited = false;
     this.favoritesCounts = 0;
     this.author = "";
+  }
+
+  public UUID getId() {
+    return id;
   }
 
   public String getSlug() {
@@ -86,6 +95,10 @@ public class Article {
 
   public String getAuthor() {
     return author;
+  }
+
+  public Set<Comment> getComments() {
+    return comments;
   }
 
   public void setId(UUID id) {
@@ -132,4 +145,7 @@ public class Article {
     this.author = author;
   }
 
+  public void setComments(Set<Comment> comments) {
+    this.comments = comments;
+  }
 }

@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.luizgmelo.conduit.dtos.ArticleDto;
 import com.luizgmelo.conduit.dtos.ArticleUpdateDto;
+import com.luizgmelo.conduit.exceptions.ArticleNotFoundException;
 import com.luizgmelo.conduit.models.Article;
 import com.luizgmelo.conduit.repositories.ArticleRepository;
 
@@ -21,11 +22,11 @@ public class ArticleService {
     if (articleOpt.isPresent()) {
       return articleOpt.get();
     }
-    return null;
+    throw new ArticleNotFoundException("Article not found!");
   }
 
   public Article createNewArticle(ArticleDto data) {
-    var newArticle = new Article(data.title(), data.description(), data.body(), data.tagList());
+    Article newArticle = new Article(data.title(), data.description(), data.body(), data.tagList());
     return articleRepository.save(newArticle);
   }
 
