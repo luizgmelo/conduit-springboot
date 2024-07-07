@@ -1,5 +1,8 @@
 package com.luizgmelo.conduit.models;
 
+import java.time.LocalDateTime;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -21,6 +24,9 @@ public class Comment {
   @GeneratedValue(strategy = GenerationType.AUTO)
   private UUID id;
 
+  private LocalDateTime createdAt;
+  private LocalDateTime updatedAt;
+
   @Column(nullable = false)
   private String body;
 
@@ -35,6 +41,8 @@ public class Comment {
   public Comment(String body, Article articleOwner) {
     this.body = body;
     this.commentFrom = articleOwner;
+    this.createdAt = LocalDateTime.now();
+    this.updatedAt = LocalDateTime.now();
   }
 
   public UUID getId() {
@@ -60,4 +68,21 @@ public class Comment {
   public void setCommentFrom(Article commentFrom) {
     this.commentFrom = commentFrom;
   }
+
+  public LocalDateTime getCreatedAt() {
+    return createdAt;
+  }
+
+  public void setCreatedAt(LocalDateTime createdAt) {
+    this.createdAt = createdAt;
+  }
+
+  public LocalDateTime getUpdatedAt() {
+    return updatedAt;
+  }
+
+  public void setUpdatedAt(LocalDateTime updatedAt) {
+    this.updatedAt = updatedAt;
+  }
+
 }
