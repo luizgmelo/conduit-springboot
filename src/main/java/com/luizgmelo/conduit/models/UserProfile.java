@@ -1,40 +1,40 @@
 package com.luizgmelo.conduit.models;
 
-import java.io.Serializable;
 import java.util.UUID;
 
-import jakarta.persistence.CascadeType;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "users")
-public class User implements Serializable {
+@Table(name = "users_profiles")
+public class UserProfile {
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   private UUID id;
 
-  @Column(unique = true, nullable = false)
+  @Column(nullable = false)
   private String username;
-  @Column(unique = true, nullable = false)
-  private String email;
-  @Column(unique = true, nullable = false)
-  private String passwordHash;
 
   private String bio;
+
   private String image;
 
-  @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
-  private UserProfile userProfile;
+  private boolean following;
 
-  public User() {
+  @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+  @OneToOne
+  @JoinColumn(name = "user_id")
+  private User user;
+
+  public UserProfile() {
   }
 
   public UUID getId() {
@@ -53,22 +53,6 @@ public class User implements Serializable {
     this.username = username;
   }
 
-  public String getEmail() {
-    return email;
-  }
-
-  public void setEmail(String email) {
-    this.email = email;
-  }
-
-  public String getPasswordHash() {
-    return passwordHash;
-  }
-
-  public void setPasswordHash(String passwordHash) {
-    this.passwordHash = passwordHash;
-  }
-
   public String getBio() {
     return bio;
   }
@@ -85,12 +69,20 @@ public class User implements Serializable {
     this.image = image;
   }
 
-  public UserProfile getUserProfile() {
-    return userProfile;
+  public boolean isFollowing() {
+    return following;
   }
 
-  public void setUserProfile(UserProfile userProfile) {
-    this.userProfile = userProfile;
+  public void setFollowing(boolean following) {
+    this.following = following;
+  }
+
+  public User getUser() {
+    return user;
+  }
+
+  public void setUser(User user) {
+    this.user = user;
   }
 
 }

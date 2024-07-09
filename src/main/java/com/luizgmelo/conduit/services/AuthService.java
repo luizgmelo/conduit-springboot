@@ -10,7 +10,10 @@ import com.luizgmelo.conduit.dtos.LoginRequestDto;
 import com.luizgmelo.conduit.dtos.RegisterRequestDto;
 import com.luizgmelo.conduit.dtos.ResponseUserDto;
 import com.luizgmelo.conduit.models.User;
+import com.luizgmelo.conduit.models.UserProfile;
 import com.luizgmelo.conduit.repositories.UserRepository;
+
+import jakarta.transaction.Transactional;
 
 @Service
 public class AuthService implements IAuthService {
@@ -36,12 +39,24 @@ public class AuthService implements IAuthService {
     throw new RuntimeException("Wrong email or password!");
   }
 
+  @Transactional
   @Override
   public ResponseUserDto register(RegisterRequestDto body) {
     String passwordHash = passwordEncoder.encode(body.password());
-    User newUser = new User(body.username(), body.email(), passwordHash);
+
+    User newUser = new User();
+    newUser.setUsername(body.username());
+    newUser.setEmail(body.email());
+    newUser.setPasswordHash(passwordHash);
+
+    UserProfile userProfile = new UserProfile();
+    userProfile.setUsername(body.username());
+    newUser.setUserProfile(userProfile);
+
     User user = userRepository.save(newUser);
+
     String token = tokenService.generateToken(user);
+
     return new ResponseUserDto(user, token);
   }
 }
