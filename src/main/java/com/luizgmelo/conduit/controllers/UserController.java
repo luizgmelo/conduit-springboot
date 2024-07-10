@@ -15,6 +15,8 @@ import com.luizgmelo.conduit.dtos.UpdateUserRequestDto;
 import com.luizgmelo.conduit.models.User;
 import com.luizgmelo.conduit.services.UserService;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/api/user")
 public class UserController {
@@ -23,7 +25,7 @@ public class UserController {
   UserService userService;
 
   @GetMapping
-  public ResponseEntity getCurrentUser(@RequestHeader(name = "Authorization") String tokenBearer) {
+  public ResponseEntity<Object> getCurrentUser(@RequestHeader(name = "Authorization") String tokenBearer) {
     String token = tokenBearer.replace("Bearer ", "");
     User user = userService.getUserAuthenticated(token);
     var response = new ResponseUserDto(user, token);
@@ -33,13 +35,11 @@ public class UserController {
   }
 
   @PutMapping
-  public ResponseEntity updateCurrentUser(@RequestHeader(name = "Authorization") String tokenBearer,
-      @RequestBody UpdateUserRequestDto body) {
+  public ResponseEntity<Object> updateCurrentUser(@RequestHeader(name = "Authorization") String tokenBearer,
+      @RequestBody @Valid UpdateUserRequestDto body) {
     String token = tokenBearer.replace("Bearer ", "");
     User user = userService.updateCurrentUser(token, body);
     var response = new ResponseUserDto(user, token);
-    if (user != null)
-      return ResponseEntity.status(HttpStatus.OK).body(response);
-    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+    return ResponseEntity.status(HttpStatus.OK).body(response);
   }
 }

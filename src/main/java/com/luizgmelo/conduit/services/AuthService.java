@@ -42,6 +42,7 @@ public class AuthService implements IAuthService {
   @Transactional
   @Override
   public ResponseUserDto register(RegisterRequestDto body) {
+    // <TO-DO WHEN USER ARE REGISTER CAN ALSO CREATE A PROFILE FOR THIS USER>
     String passwordHash = passwordEncoder.encode(body.password());
 
     User newUser = new User();

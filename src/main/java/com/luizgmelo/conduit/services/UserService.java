@@ -7,6 +7,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.luizgmelo.conduit.dtos.UpdateUserRequestDto;
+import com.luizgmelo.conduit.exceptions.UserNotFoundException;
 import com.luizgmelo.conduit.models.User;
 import com.luizgmelo.conduit.repositories.UserRepository;
 
@@ -39,20 +40,15 @@ public class UserService {
 
     if (userOpt.isPresent()) {
       User user = userOpt.get();
-
-      if (data.email() != null)
-        user.setEmail(data.email());
-      if (data.username() != null)
-        user.setUsername(data.username());
-      if (data.password() != null)
-        user.setPasswordHash(passwordEncoder.encode(data.password()));
-      if (data.bio() != null)
-        user.setBio(data.bio());
-      if (data.image() != null)
-        user.setImage(data.image());
+      user.setEmail(data.email());
+      user.setUsername(data.username());
+      user.setPasswordHash(passwordEncoder.encode(data.password()));
+      user.setBio(data.bio());
+      user.setImage(data.image());
 
       return userRepository.save(user);
     }
-    return null;
+
+    throw new UserNotFoundException("User not found!");
   }
 }
