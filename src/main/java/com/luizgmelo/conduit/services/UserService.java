@@ -26,12 +26,7 @@ public class UserService {
     String email = tokenService.validateToken(token);
     Optional<User> userOpt = userRepository.findByEmail(email);
     User user = userOpt.get();
-    User userAuthenticated = new User();
-    userAuthenticated.setEmail(user.getEmail());
-    userAuthenticated.setUsername(user.getUsername());
-    userAuthenticated.setBio(user.getBio());
-    userAuthenticated.setImage(user.getImage());
-    return userAuthenticated;
+    return user;
   }
 
   public User updateCurrentUser(String token, UpdateUserRequestDto data) {

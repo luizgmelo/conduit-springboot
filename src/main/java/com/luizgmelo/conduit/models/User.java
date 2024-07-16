@@ -1,16 +1,23 @@
 package com.luizgmelo.conduit.models;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
@@ -33,6 +40,10 @@ public class User implements Serializable {
 
   @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
   private UserProfile userProfile;
+
+  @ManyToMany(fetch = FetchType.EAGER)
+  @JoinTable(name = "user_follow_user_profile", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "profile_id"))
+  private Set<UserProfile> following = new HashSet<>();
 
   public User() {
   }
@@ -91,6 +102,14 @@ public class User implements Serializable {
 
   public void setUserProfile(UserProfile userProfile) {
     this.userProfile = userProfile;
+  }
+
+  public Set<UserProfile> getFollowing() {
+    return following;
+  }
+
+  public void setFollowing(Set<UserProfile> following) {
+    this.following = following;
   }
 
 }

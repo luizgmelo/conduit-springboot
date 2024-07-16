@@ -32,12 +32,16 @@ public class Article {
   private Date updatedAt;
   private boolean favorited;
   private Integer favoritesCounts;
-  private String author;
+  private UserProfile author;
 
   @OneToMany(mappedBy = "commentFrom")
   private Set<Comment> comments;
 
   public Article() {
+  }
+
+  public Article(UserProfile author) {
+    this.author = author;
   }
 
   public Article(String title, String description, String body, String[] tagList) {
@@ -50,7 +54,6 @@ public class Article {
     this.updatedAt = Calendar.getInstance().getTime();
     this.favorited = false;
     this.favoritesCounts = 0;
-    this.author = "";
   }
 
   public UUID getId() {
@@ -93,7 +96,7 @@ public class Article {
     return favoritesCounts;
   }
 
-  public String getAuthor() {
+  public UserProfile getAuthor() {
     return author;
   }
 
@@ -141,7 +144,7 @@ public class Article {
     this.favoritesCounts = favoritesCounts;
   }
 
-  public void setAuthor(String author) {
+  public void setAuthor(UserProfile author) {
     this.author = author;
   }
 

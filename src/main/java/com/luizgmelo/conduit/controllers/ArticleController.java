@@ -1,5 +1,7 @@
 package com.luizgmelo.conduit.controllers;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,11 +12,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.luizgmelo.conduit.dtos.ArticleDto;
 import com.luizgmelo.conduit.dtos.ArticleUpdateDto;
 import com.luizgmelo.conduit.models.Article;
+import com.luizgmelo.conduit.models.UserProfile;
 import com.luizgmelo.conduit.services.ArticleService;
 
 @RestController
@@ -23,6 +27,12 @@ public class ArticleController {
 
   @Autowired
   ArticleService articleService;
+
+  @GetMapping
+  public ResponseEntity<List<Article>> getListArticles(@RequestParam(required = false) UserProfile author) {
+    List<Article> articles = articleService.listArticles(author);
+    return ResponseEntity.status(HttpStatus.OK).body(articles);
+  }
 
   @GetMapping("/{slug}")
   public ResponseEntity getArticle(@PathVariable("slug") String slug) {

@@ -1,14 +1,17 @@
 package com.luizgmelo.conduit.services;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Example;
 import org.springframework.stereotype.Service;
 
 import com.luizgmelo.conduit.dtos.ArticleDto;
 import com.luizgmelo.conduit.dtos.ArticleUpdateDto;
 import com.luizgmelo.conduit.exceptions.ArticleNotFoundException;
 import com.luizgmelo.conduit.models.Article;
+import com.luizgmelo.conduit.models.UserProfile;
 import com.luizgmelo.conduit.repositories.ArticleRepository;
 
 @Service
@@ -16,6 +19,11 @@ public class ArticleService {
 
   @Autowired
   ArticleRepository articleRepository;
+
+  public List<Article> listArticles(UserProfile author) {
+    Example<Article> query = QueryBuilder.makeQuery(new Article(author));
+    return articleRepository.findAll(query);
+  }
 
   public Article getArticle(String slug) {
     Optional<Article> articleOpt = articleRepository.findBySlug(slug);
