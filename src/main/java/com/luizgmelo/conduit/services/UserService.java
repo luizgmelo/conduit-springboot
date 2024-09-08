@@ -45,7 +45,7 @@ public class UserService {
       if (data.username() != null)
         user.setUsername(data.username());
       if (data.password() != null)
-        user.setPasswordHash(passwordEncoder.encode(data.password()));
+        user.setPassword(passwordEncoder.encode(data.password()));
       if (data.bio() != null)
         user.setBio(data.bio());
       if (data.image() != null)
