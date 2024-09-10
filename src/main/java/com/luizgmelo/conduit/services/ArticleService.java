@@ -25,30 +25,24 @@ public class ArticleService {
     throw new ArticleNotFoundException("Article not found!");
   }
 
-  public Article createNewArticle(ArticleDto data) {
+  public Article createArticle(ArticleDto data) {
     Article newArticle = new Article(data.title(), data.description(), data.body(), data.tagList());
     return articleRepository.save(newArticle);
   }
 
-  public Article updateArticle(String slug, ArticleUpdateDto data) {
+  public Article updateArticle(String slug, ArticleDto data) {
     Article articleOld = this.getArticle(slug);
     if (articleOld != null) {
       articleOld.setTitle(data.title());
       articleOld.setDescription(data.description());
       articleOld.setBody(data.body());
-      articleOld.setFavorited(data.favorited());
-      articleOld.setAuthor(data.author());
-      var articleUpdated = articleRepository.save(articleOld);
-      return articleUpdated;
+      articleOld.setTagList(data.tagList());
+      return articleRepository.save(articleOld);
     }
-    return null;
-
+    throw new ArticleNotFoundException("Article not found!");
   }
 
-  public Article removeArticle(String slug) {
-    Article removed = this.getArticle(slug);
-    if (removed != null)
-      articleRepository.delete(removed);
-    return removed;
+  public void removeArticle(String slug) {
+    articleRepository.deleteBySlug(slug);
   }
 }
