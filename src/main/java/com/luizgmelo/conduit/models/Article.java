@@ -1,151 +1,53 @@
 package com.luizgmelo.conduit.models;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "articles")
+@Getter
+@Setter
+@NoArgsConstructor
 public class Article {
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   private UUID id;
 
   private String slug;
-  @Column(nullable = false)
+  @Column(nullable = false, unique = true)
   private String title;
   @Column(nullable = false)
   private String description;
   @Column(nullable = false)
   private String body;
-  private String[] tagList;
+  @ElementCollection
+  private ArrayList<String> tagList;
   private Date createdAt;
   private Date updatedAt;
   private boolean favorited;
-  private Integer favoritesCounts;
+  private int favoritesCounts;
+  // <TO-DO> Do class Profile and attribute to Type of author
   private String author;
 
   @OneToMany(mappedBy = "commentFrom")
   private Set<Comment> comments;
 
-  public Article() {
-  }
-
-  public Article(String title, String description, String body, String[] tagList) {
-    this.slug = title.replace(" ", "-").toLowerCase();
+  public Article(String title, String description, String body, ArrayList<String> tagList) {
+    this.slug = generateSlug(title);
     this.title = title;
     this.description = description;
     this.body = body;
     this.tagList = tagList;
     this.createdAt = Calendar.getInstance().getTime();
     this.updatedAt = Calendar.getInstance().getTime();
-    this.favorited = false;
-    this.favoritesCounts = 0;
-    this.author = "";
   }
 
-  public UUID getId() {
-    return id;
+  private String generateSlug(String title) {
+    return title.replace(" ", "-").toLowerCase();
   }
 
-  public String getSlug() {
-    return slug;
-  }
-
-  public String getTitle() {
-    return title;
-  }
-
-  public String getDescription() {
-    return description;
-  }
-
-  public String getBody() {
-    return body;
-  }
-
-  public String[] getTagList() {
-    return tagList;
-  }
-
-  public Date getCreatedAt() {
-    return createdAt;
-  }
-
-  public Date getUpdatedAt() {
-    return updatedAt;
-  }
-
-  public boolean isFavorited() {
-    return favorited;
-  }
-
-  public Integer getFavoritesCounts() {
-    return favoritesCounts;
-  }
-
-  public String getAuthor() {
-    return author;
-  }
-
-  public Set<Comment> getComments() {
-    return comments;
-  }
-
-  public void setId(UUID id) {
-    this.id = id;
-  }
-
-  public void setSlug(String slug) {
-    this.slug = slug;
-  }
-
-  public void setTitle(String title) {
-    this.title = title;
-  }
-
-  public void setDescription(String description) {
-    this.description = description;
-  }
-
-  public void setBody(String body) {
-    this.body = body;
-  }
-
-  public void setTagList(String[] tagList) {
-    this.tagList = tagList;
-  }
-
-  public void setCreatedAt(Date createdAt) {
-    this.createdAt = createdAt;
-  }
-
-  public void setUpdatedAt(Date updatedAt) {
-    this.updatedAt = updatedAt;
-  }
-
-  public void setFavorited(boolean favorited) {
-    this.favorited = favorited;
-  }
-
-  public void setFavoritesCounts(Integer favoritesCounts) {
-    this.favoritesCounts = favoritesCounts;
-  }
-
-  public void setAuthor(String author) {
-    this.author = author;
-  }
-
-  public void setComments(Set<Comment> comments) {
-    this.comments = comments;
-  }
 }
