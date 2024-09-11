@@ -2,6 +2,7 @@ package com.luizgmelo.conduit.services;
 
 import java.util.Optional;
 
+import com.luizgmelo.conduit.dtos.UserAuthenticatedDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -21,15 +22,17 @@ public class UserService {
   @Autowired
   PasswordEncoder passwordEncoder;
 
-  public User getUserAuthenticated(String token) {
+  public UserAuthenticatedDTO getUserAuthenticated(String token) {
     String email = tokenService.validateToken(token);
     Optional<User> userOpt = userRepository.findByEmail(email);
     User user = userOpt.get();
-    User userAuthenticated = new User();
-    userAuthenticated.setEmail(user.getEmail());
-    userAuthenticated.setUsername(user.getUsername());
-    userAuthenticated.setBio(user.getBio());
-    userAuthenticated.setImage(user.getImage());
+    var userAuthenticated = new UserAuthenticatedDTO(
+            user.getEmail(),
+            token,
+            user.getUsername(),
+            user.getBio(),
+            user.getImage());
+
     return userAuthenticated;
   }
 

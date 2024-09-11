@@ -1,5 +1,6 @@
 package com.luizgmelo.conduit.controllers;
 
+import com.luizgmelo.conduit.dtos.UserAuthenticatedDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,9 +26,8 @@ public class UserController {
   @GetMapping
   public ResponseEntity getCurrentUser(@RequestHeader(name = "Authorization") String tokenBearer) {
     String token = tokenBearer.replace("Bearer ", "");
-    User user = userService.getUserAuthenticated(token);
-    var response = new ResponseUserDto(user, token);
-    if (user != null)
+    UserAuthenticatedDTO response = userService.getUserAuthenticated(token);
+    if (response != null)
       return ResponseEntity.status(HttpStatus.OK).body(response);
     return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
   }
