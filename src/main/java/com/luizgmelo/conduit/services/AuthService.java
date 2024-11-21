@@ -31,7 +31,7 @@ public class AuthService implements IAuthService {
     Optional<User> userOpt = userRepository.findByEmail(body.email());
     if (userOpt.isPresent()) {
       User user = userOpt.get();
-      if (passwordEncoder.matches(body.password(), user.getPasswordHash())) {
+      if (passwordEncoder.matches(body.password(), user.getPassword())) {
         String token = tokenService.generateToken(user);
         return new ResponseUserDto(user, token);
       }

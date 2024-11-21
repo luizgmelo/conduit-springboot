@@ -45,12 +45,12 @@ public class ArticleController {
 
   @PostMapping
   public ResponseEntity createArticle(@RequestBody ArticleDto body) {
-    Article article = articleService.createNewArticle(body);
+    Article article = articleService.createArticle(body);
     return ResponseEntity.status(HttpStatus.CREATED).body(article);
   }
 
   @PutMapping("/{slug}")
-  public ResponseEntity updateArticle(@PathVariable("slug") String slug, @RequestBody ArticleUpdateDto body) {
+  public ResponseEntity updateArticle(@PathVariable("slug") String slug, @RequestBody ArticleDto body) {
     Article updated = articleService.updateArticle(slug, body);
     if (updated != null)
       return ResponseEntity.status(HttpStatus.OK).body(updated);
@@ -59,9 +59,7 @@ public class ArticleController {
 
   @DeleteMapping("/{slug}")
   public ResponseEntity deleteArticle(@PathVariable("slug") String slug) {
-    Article removed = articleService.removeArticle(slug);
-    if (removed != null)
-      return ResponseEntity.status(HttpStatus.OK).body(removed);
-    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Article not found");
+    articleService.removeArticle(slug);
+    return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
   }
 }
