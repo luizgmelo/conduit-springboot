@@ -31,7 +31,7 @@ public class AuthService {
     Optional<User> userOpt = userRepository.findByEmail(body.email());
     if (userOpt.isPresent()) {
       User user = userOpt.get();
-      if (passwordEncoder.matches(body.password(), user.getPasswordHash())) {
+      if (passwordEncoder.matches(body.password(), user.getPassword())) {
         String token = tokenService.generateToken(user);
         UserDTO userDTO = new UserDTO(user.getEmail(), token, user.getUsername(), user.getBio(), user.getImage());
         return new AuthResponseDTO(userDTO);
