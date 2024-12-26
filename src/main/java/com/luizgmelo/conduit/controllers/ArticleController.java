@@ -2,9 +2,13 @@ package com.luizgmelo.conduit.controllers;
 
 import java.util.List;
 
+import com.luizgmelo.conduit.dtos.ResponseArticleDTO;
+import com.luizgmelo.conduit.models.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -12,15 +16,14 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.luizgmelo.conduit.dtos.ArticleDto;
+import com.luizgmelo.conduit.dtos.RequestArticleDTO;
 import com.luizgmelo.conduit.dtos.ArticleUpdateDto;
 import com.luizgmelo.conduit.models.Article;
-import com.luizgmelo.conduit.models.UserProfile;
 import com.luizgmelo.conduit.services.ArticleService;
 
+// TODO Each endpoint should receive a Dto Request and Return a Dto Response.
 @RestController
 @RequestMapping("/api/articles")
 public class ArticleController {
@@ -29,8 +32,8 @@ public class ArticleController {
   ArticleService articleService;
 
   @GetMapping
-  public ResponseEntity<List<Article>> getListArticles(@RequestParam(required = false) UserProfile author) {
-    List<Article> articles = articleService.listArticles(author);
+  public ResponseEntity<List<Article>> getListArticles() {
+    List<Article> articles = articleService.listArticles();
     return ResponseEntity.status(HttpStatus.OK).body(articles);
   }
 
@@ -44,13 +47,19 @@ public class ArticleController {
   }
 
   @PostMapping
-  public ResponseEntity createArticle(@RequestBody ArticleDto body) {
-    Article article = articleService.createNewArticle(body);
-    return ResponseEntity.status(HttpStatus.CREATED).body(article);
+  public ResponseEntity<ResponseArticleDTO> createArticle(@RequestBody RequestArticleDTO request) {
+    User user = getAuthenticatedUser();
+    if (user == null) {
+      throw new RuntimeException("Error: Missing authentication details");
+    }
+    Article article = articleService.createNewArticle(request, user);
+    ResponseArticleDTO response = ResponseArticleDTO.fromArticle(article);
+    return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
 
   @PutMapping("/{slug}")
   public ResponseEntity updateArticle(@PathVariable("slug") String slug, @RequestBody ArticleUpdateDto body) {
+    // TODO check if who is updating is the author
     Article updated = articleService.updateArticle(slug, body);
     if (updated != null)
       return ResponseEntity.status(HttpStatus.OK).body(updated);
@@ -59,9 +68,16 @@ public class ArticleController {
 
   @DeleteMapping("/{slug}")
   public ResponseEntity deleteArticle(@PathVariable("slug") String slug) {
-    Article removed = articleService.removeArticle(slug);
-    if (removed != null)
-      return ResponseEntity.status(HttpStatus.OK).body(removed);
-    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Article not found");
+    articleService.removeArticle(slug);
+    return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+  }
+
+  private User getAuthenticatedUser() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    Object principal = authentication.getPrincipal();
+    if (principal instanceof User) {
+      return (User) principal;
+    }
+    return null;
   }
 }

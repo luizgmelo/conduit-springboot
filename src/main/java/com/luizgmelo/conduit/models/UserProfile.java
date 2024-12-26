@@ -15,8 +15,14 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
+@Getter
+@Setter
+@NoArgsConstructor
 @Table(name = "users_profiles")
 public class UserProfile {
   @Id
@@ -40,64 +46,4 @@ public class UserProfile {
   @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
   @ManyToMany(mappedBy = "following", fetch = FetchType.LAZY)
   private Set<User> followedBy;
-
-  public UserProfile() {
-  }
-
-  public UUID getId() {
-    return id;
-  }
-
-  public void setId(UUID id) {
-    this.id = id;
-  }
-
-  public String getUsername() {
-    return username;
-  }
-
-  public void setUsername(String username) {
-    this.username = username;
-  }
-
-  public String getBio() {
-    return bio;
-  }
-
-  public void setBio(String bio) {
-    this.bio = bio;
-  }
-
-  public String getImage() {
-    return image;
-  }
-
-  public void setImage(String image) {
-    this.image = image;
-  }
-
-  public boolean isFollowing() {
-    return following;
-  }
-
-  public void setFollowing(boolean following) {
-    this.following = following;
-  }
-
-  public User getUser() {
-    return user;
-  }
-
-  public void setUser(User user) {
-    this.user = user;
-  }
-
-  public Set<User> getFollowedBy() {
-    return followedBy;
-  }
-
-  public void setFollowedBy(Set<User> followedBy) {
-    this.followedBy = followedBy;
-  }
-
 }

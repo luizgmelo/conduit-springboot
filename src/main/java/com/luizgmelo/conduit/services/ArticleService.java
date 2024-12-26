@@ -1,28 +1,27 @@
 package com.luizgmelo.conduit.services;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import com.luizgmelo.conduit.models.User;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Example;
 import org.springframework.stereotype.Service;
 
-import com.luizgmelo.conduit.dtos.ArticleDto;
+import com.luizgmelo.conduit.dtos.RequestArticleDTO;
 import com.luizgmelo.conduit.dtos.ArticleUpdateDto;
 import com.luizgmelo.conduit.exceptions.ArticleNotFoundException;
 import com.luizgmelo.conduit.models.Article;
-import com.luizgmelo.conduit.models.UserProfile;
 import com.luizgmelo.conduit.repositories.ArticleRepository;
 
 @Service
 public class ArticleService {
 
   @Autowired
-  ArticleRepository articleRepository;
+  private ArticleRepository articleRepository;
 
-  public List<Article> listArticles(UserProfile author) {
-    Example<Article> query = QueryBuilder.makeQuery(new Article(author));
-    return articleRepository.findAll(query);
+  public List<Article> listArticles() {
+    return articleRepository.findAll();
   }
 
   public Article getArticle(String slug) {
@@ -33,8 +32,9 @@ public class ArticleService {
     throw new ArticleNotFoundException("Article not found!");
   }
 
-  public Article createNewArticle(ArticleDto data) {
-    Article newArticle = new Article(data.title(), data.description(), data.body(), data.tagList());
+  public Article createNewArticle(RequestArticleDTO data, User author) {
+    List<String> tagList = Arrays.asList(data.tagList());
+    Article newArticle = new Article(data.title(), data.description(), data.body(), tagList, author);
     return articleRepository.save(newArticle);
   }
 
@@ -44,10 +44,8 @@ public class ArticleService {
       articleOld.setTitle(data.title());
       articleOld.setDescription(data.description());
       articleOld.setBody(data.body());
-      articleOld.setFavorited(data.favorited());
-      articleOld.setAuthor(data.author());
-      var articleUpdated = articleRepository.save(articleOld);
-      return articleUpdated;
+      articleOld.setFavorite(data.favorited());
+        return articleRepository.save(articleOld);
     }
     return null;
 

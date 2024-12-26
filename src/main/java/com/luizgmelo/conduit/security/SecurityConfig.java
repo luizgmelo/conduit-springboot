@@ -33,6 +33,10 @@ public class SecurityConfig {
                 .requestMatchers("/api/users/login").permitAll()
                 .requestMatchers("/api/articles/{slug}").permitAll()
                 .requestMatchers(antMatcher(HttpMethod.GET, "/api/articles/{slug}/comments")).permitAll()
+                .requestMatchers(
+                        "/v3/api-docs/**",
+                        "/swagger-ui/**",
+                        "/swagger-ui.html").permitAll()
                 .anyRequest().authenticated())
         .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class);
 

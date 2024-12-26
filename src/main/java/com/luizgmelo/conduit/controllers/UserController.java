@@ -1,5 +1,7 @@
 package com.luizgmelo.conduit.controllers;
 
+import com.luizgmelo.conduit.dtos.AuthResponseDTO;
+import com.luizgmelo.conduit.dtos.UserDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.luizgmelo.conduit.dtos.ResponseUserDto;
 import com.luizgmelo.conduit.dtos.UpdateUserRequestDto;
 import com.luizgmelo.conduit.models.User;
 import com.luizgmelo.conduit.services.UserService;
@@ -25,21 +26,22 @@ public class UserController {
   UserService userService;
 
   @GetMapping
-  public ResponseEntity<Object> getCurrentUser(@RequestHeader(name = "Authorization") String tokenBearer) {
+  public ResponseEntity<AuthResponseDTO> getCurrentUser(@RequestHeader(name = "Authorization") String tokenBearer) {
     String token = tokenBearer.replace("Bearer ", "");
     User user = userService.getUserAuthenticated(token);
-    var response = new ResponseUserDto(user, token);
-    if (user != null)
-      return ResponseEntity.status(HttpStatus.OK).body(response);
-    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+    UserDTO userDTO = new UserDTO(user.getEmail(), token, user.getUsername(), user.getBio(), user.getImage());
+    AuthResponseDTO response = new AuthResponseDTO(userDTO);
+    return ResponseEntity.status(HttpStatus.OK).body(response);
   }
 
   @PutMapping
-  public ResponseEntity<Object> updateCurrentUser(@RequestHeader(name = "Authorization") String tokenBearer,
+  public ResponseEntity<AuthResponseDTO> updateCurrentUser(@RequestHeader(name = "Authorization") String tokenBearer,
       @RequestBody @Valid UpdateUserRequestDto body) {
     String token = tokenBearer.replace("Bearer ", "");
     User user = userService.updateCurrentUser(token, body);
-    var response = new ResponseUserDto(user, token);
+
+    UserDTO userDTO = new UserDTO(user.getEmail(), token, user.getUsername(), user.getBio(), user.getImage());
+    var response = new AuthResponseDTO(userDTO);
     return ResponseEntity.status(HttpStatus.OK).body(response);
   }
 }

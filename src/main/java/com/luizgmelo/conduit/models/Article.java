@@ -1,154 +1,74 @@
 package com.luizgmelo.conduit.models;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Set;
-import java.util.UUID;
+import java.time.LocalDateTime;
+import java.util.*;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import com.github.slugify.Slugify;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
+@Getter
+@Setter
+@NoArgsConstructor
 @Table(name = "articles")
+@EntityListeners(AuditingEntityListener.class)
 public class Article {
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   private UUID id;
 
+  @Column(nullable = false)
   private String slug;
+
   @Column(nullable = false)
   private String title;
+
   @Column(nullable = false)
   private String description;
+
   @Column(nullable = false)
   private String body;
-  private String[] tagList;
-  private Date createdAt;
-  private Date updatedAt;
-  private boolean favorited;
-  private Integer favoritesCounts;
-  private UserProfile author;
+
+  @ElementCollection
+  private List<String> tagList;
+
+  @CreatedDate
+  @Column(nullable = false, updatable = false)
+  private LocalDateTime createdAt;
+
+  @LastModifiedDate
+  @Column(nullable = false)
+  private LocalDateTime updatedAt;
+
+  private boolean isFavorite;
+
+  private int favoritesCount;
+
+  @ManyToOne
+  @JoinColumn(name = "user_id", nullable = false)
+  private User author;
 
   @OneToMany(mappedBy = "commentFrom")
   private Set<Comment> comments;
 
-  public Article() {
-  }
-
-  public Article(UserProfile author) {
-    this.author = author;
-  }
-
-  public Article(String title, String description, String body, String[] tagList) {
-    this.slug = title.replace(" ", "-").toLowerCase();
+  public Article(String title, String description, String body, List<String> tagList, User author) {
     this.title = title;
     this.description = description;
     this.body = body;
     this.tagList = tagList;
-    this.createdAt = Calendar.getInstance().getTime();
-    this.updatedAt = Calendar.getInstance().getTime();
-    this.favorited = false;
-    this.favoritesCounts = 0;
-  }
-
-  public UUID getId() {
-    return id;
-  }
-
-  public String getSlug() {
-    return slug;
-  }
-
-  public String getTitle() {
-    return title;
-  }
-
-  public String getDescription() {
-    return description;
-  }
-
-  public String getBody() {
-    return body;
-  }
-
-  public String[] getTagList() {
-    return tagList;
-  }
-
-  public Date getCreatedAt() {
-    return createdAt;
-  }
-
-  public Date getUpdatedAt() {
-    return updatedAt;
-  }
-
-  public boolean isFavorited() {
-    return favorited;
-  }
-
-  public Integer getFavoritesCounts() {
-    return favoritesCounts;
-  }
-
-  public UserProfile getAuthor() {
-    return author;
-  }
-
-  public Set<Comment> getComments() {
-    return comments;
-  }
-
-  public void setId(UUID id) {
-    this.id = id;
-  }
-
-  public void setSlug(String slug) {
-    this.slug = slug;
-  }
-
-  public void setTitle(String title) {
-    this.title = title;
-  }
-
-  public void setDescription(String description) {
-    this.description = description;
-  }
-
-  public void setBody(String body) {
-    this.body = body;
-  }
-
-  public void setTagList(String[] tagList) {
-    this.tagList = tagList;
-  }
-
-  public void setCreatedAt(Date createdAt) {
-    this.createdAt = createdAt;
-  }
-
-  public void setUpdatedAt(Date updatedAt) {
-    this.updatedAt = updatedAt;
-  }
-
-  public void setFavorited(boolean favorited) {
-    this.favorited = favorited;
-  }
-
-  public void setFavoritesCounts(Integer favoritesCounts) {
-    this.favoritesCounts = favoritesCounts;
-  }
-
-  public void setAuthor(UserProfile author) {
     this.author = author;
   }
 
-  public void setComments(Set<Comment> comments) {
-    this.comments = comments;
+  @PrePersist
+  @PreUpdate
+  public void generateSlug() {
+    Slugify slugify = Slugify.builder().build();
+    this.slug = slugify.slugify(this.title);
   }
 }
