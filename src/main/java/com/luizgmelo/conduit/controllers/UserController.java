@@ -28,7 +28,7 @@ public class UserController {
   @GetMapping
   public ResponseEntity<AuthResponseDTO> getCurrentUser(@RequestHeader(name = "Authorization") String tokenBearer) {
     String token = tokenBearer.replace("Bearer ", "");
-    User user = userService.getUserAuthenticated(token);
+    User user = userService.getAuthenticatedUser();
     UserDTO userDTO = new UserDTO(user.getEmail(), token, user.getUsername(), user.getBio(), user.getImage());
     AuthResponseDTO response = new AuthResponseDTO(userDTO);
     return ResponseEntity.status(HttpStatus.OK).body(response);

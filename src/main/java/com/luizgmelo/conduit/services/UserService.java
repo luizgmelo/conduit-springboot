@@ -2,8 +2,9 @@ package com.luizgmelo.conduit.services;
 
 import java.util.Optional;
 
-import com.luizgmelo.conduit.dtos.UserAuthenticatedDTO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -22,18 +23,15 @@ public class UserService {
   @Autowired
   PasswordEncoder passwordEncoder;
 
-  public UserAuthenticatedDTO getUserAuthenticated(String token) {
-    String email = tokenService.validateToken(token);
-    Optional<User> userOpt = userRepository.findByEmail(email);
-    User user = userOpt.get();
-    var userAuthenticated = new UserAuthenticatedDTO(
-            user.getEmail(),
-            token,
-            user.getUsername(),
-            user.getBio(),
-            user.getImage());
-
-    return userAuthenticated;
+  public User getAuthenticatedUser() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    Object principal = authentication.getPrincipal();
+    if (principal instanceof User) {
+      return (User) principal;
+    } else {
+      // TODO Threat when user authenticated fails
+      return null;
+    }
   }
 
   public User updateCurrentUser(String token, UpdateUserRequestDto data) {
