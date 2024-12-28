@@ -11,21 +11,23 @@ import org.springframework.stereotype.Service;
 import com.luizgmelo.conduit.dtos.LoginRequestDto;
 import com.luizgmelo.conduit.dtos.RegisterRequestDto;
 import com.luizgmelo.conduit.models.User;
-import com.luizgmelo.conduit.models.UserProfile;
 import com.luizgmelo.conduit.repositories.UserRepository;
 
 import jakarta.transaction.Transactional;
 
 @Service
 public class AuthService {
-  @Autowired
-  UserRepository userRepository;
+  private final UserRepository userRepository;
 
-  @Autowired
-  PasswordEncoder passwordEncoder;
+  private final PasswordEncoder passwordEncoder;
 
-  @Autowired
-  TokenService tokenService;
+  private final TokenService tokenService;
+
+  public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, TokenService tokenService) {
+    this.userRepository = userRepository;
+    this.passwordEncoder = passwordEncoder;
+    this.tokenService = tokenService;
+  }
 
   public AuthResponseDTO login(LoginRequestDto body) {
     Optional<User> userOpt = userRepository.findByEmail(body.email());
@@ -48,11 +50,6 @@ public class AuthService {
     newUser.setUsername(body.username());
     newUser.setEmail(body.email());
     newUser.setPassword(passwordHash);
-
-    UserProfile userProfile = new UserProfile();
-    userProfile.setUsername(body.username());
-
-    newUser.setUserProfile(userProfile);
 
     User user = userRepository.save(newUser);
     String token = tokenService.generateToken(user);
