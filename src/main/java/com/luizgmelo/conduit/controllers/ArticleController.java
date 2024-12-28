@@ -2,9 +2,11 @@ package com.luizgmelo.conduit.controllers;
 
 import java.util.List;
 
-import com.luizgmelo.conduit.dtos.ResponseArticleDTO;
+import com.luizgmelo.conduit.dtos.*;
+import com.luizgmelo.conduit.exceptions.ArticleNotFoundException;
+import com.luizgmelo.conduit.exceptions.OperationNotAllowedException;
+import com.luizgmelo.conduit.exceptions.UserDetailsFailedException;
 import com.luizgmelo.conduit.models.User;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -18,8 +20,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.luizgmelo.conduit.dtos.RequestArticleDTO;
-import com.luizgmelo.conduit.dtos.ArticleUpdateDto;
 import com.luizgmelo.conduit.models.Article;
 import com.luizgmelo.conduit.services.ArticleService;
 
@@ -28,46 +28,62 @@ import com.luizgmelo.conduit.services.ArticleService;
 @RequestMapping("/api/articles")
 public class ArticleController {
 
-  @Autowired
-  ArticleService articleService;
+  private final ArticleService articleService;
+
+  public ArticleController(ArticleService articleService) {
+    this.articleService = articleService;
+  }
 
   @GetMapping
-  public ResponseEntity<List<Article>> getListArticles() {
+  public ResponseEntity<List<ArticleResponseDTO>> getListArticles() {
     List<Article> articles = articleService.listArticles();
-    return ResponseEntity.status(HttpStatus.OK).body(articles);
+    List<ArticleResponseDTO> response = articles.stream().map(ArticleResponseDTO::fromArticle).toList();
+    return ResponseEntity.status(HttpStatus.OK).body(response);
   }
 
   @GetMapping("/{slug}")
-  public ResponseEntity getArticle(@PathVariable("slug") String slug) {
+  public ResponseEntity<ArticleResponseDTO> getArticle(@PathVariable("slug") String slug) {
     Article article = articleService.getArticle(slug);
-    if (article != null)
-      return ResponseEntity.status(HttpStatus.OK).body(article);
-    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Article not found");
-
+    ArticleResponseDTO response = ArticleResponseDTO.fromArticle(article);
+    return ResponseEntity.status(HttpStatus.OK).body(response);
   }
 
   @PostMapping
-  public ResponseEntity<ResponseArticleDTO> createArticle(@RequestBody RequestArticleDTO request) {
+  public ResponseEntity<ArticleResponseDTO> createArticle(@RequestBody RequestArticleDTO dto) {
     User user = getAuthenticatedUser();
     if (user == null) {
-      throw new RuntimeException("Error: Missing authentication details");
+      throw new UserDetailsFailedException();
     }
-    Article article = articleService.createNewArticle(request, user);
-    ResponseArticleDTO response = ResponseArticleDTO.fromArticle(article);
+    Article article = articleService.createNewArticle(dto, user);
+    ArticleResponseDTO response = ArticleResponseDTO.fromArticle(article);
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
 
   @PutMapping("/{slug}")
-  public ResponseEntity updateArticle(@PathVariable("slug") String slug, @RequestBody ArticleUpdateDto body) {
-    // TODO check if who is updating is the author
-    Article updated = articleService.updateArticle(slug, body);
-    if (updated != null)
-      return ResponseEntity.status(HttpStatus.OK).body(updated);
-    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Article not found");
+  public ResponseEntity<ArticleResponseDTO> updateArticle(@PathVariable("slug") String slug, @RequestBody ArticleUpdateDto dto) {
+    User user = getAuthenticatedUser();
+
+    if (user == null) {
+      throw new UserDetailsFailedException();
+    }
+
+    Article articleOld = articleService.getArticle(slug);
+
+    if (articleOld == null) {
+      throw new ArticleNotFoundException();
+    }
+
+    if (!user.getEmail().equals(articleOld.getAuthor().getEmail())) {
+      throw new OperationNotAllowedException();
+    }
+
+    Article updated = articleService.updateArticle(articleOld, dto);
+    ArticleResponseDTO response = ArticleResponseDTO.fromArticle(updated);
+    return ResponseEntity.status(HttpStatus.OK).body(response);
   }
 
   @DeleteMapping("/{slug}")
-  public ResponseEntity deleteArticle(@PathVariable("slug") String slug) {
+  public ResponseEntity<Void> deleteArticle(@PathVariable("slug") String slug) {
     articleService.removeArticle(slug);
     return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
   }

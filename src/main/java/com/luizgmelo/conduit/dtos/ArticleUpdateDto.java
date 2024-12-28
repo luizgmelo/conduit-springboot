@@ -1,10 +1,11 @@
 package com.luizgmelo.conduit.dtos;
 
+import java.util.List;
+
 public record ArticleUpdateDto(
                 String title,
                 String description,
                 String body,
-                String[] tagList,
-                Boolean favorited) {
+                List<String> tagList) {
 
 }

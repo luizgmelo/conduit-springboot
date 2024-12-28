@@ -9,6 +9,5 @@ import com.luizgmelo.conduit.models.Article;
 
 public interface ArticleRepository extends JpaRepository<Article, UUID> {
   Optional<Article> findBySlug(String slug);
-
-  Article deleteBySlug(String slug);
+  void deleteBySlug(String slug);
 }

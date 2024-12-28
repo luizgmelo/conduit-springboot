@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.apache.catalina.connector.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -31,6 +30,11 @@ public class GlobalApiExceptionHandler {
     List<String> errors = exception.getBindingResult().getFieldErrors().stream().map(FieldError::getDefaultMessage)
         .collect(Collectors.toList());
     return new ResponseEntity<>(getErrorsMap(errors), HttpStatus.BAD_REQUEST);
+  }
+
+  @ExceptionHandler(value = ArticleConflictException.class)
+  public ResponseEntity<String> handleArticleConflictException(ArticleConflictException exception) {
+      return ResponseEntity.status(HttpStatus.CONFLICT).body(exception.getMessage());
   }
 
   private Map<String, List<String>> getErrorsMap(List<String> errors) {

@@ -3,7 +3,6 @@ package com.luizgmelo.conduit.models;
 import java.time.LocalDateTime;
 import java.util.*;
 
-import com.github.slugify.Slugify;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,7 +22,7 @@ public class Article {
   @GeneratedValue(strategy = GenerationType.AUTO)
   private UUID id;
 
-  @Column(nullable = false)
+  @Column(unique = true, nullable = false)
   private String slug;
 
   @Column(nullable = false)
@@ -57,18 +56,12 @@ public class Article {
   @OneToMany(mappedBy = "commentFrom")
   private Set<Comment> comments;
 
-  public Article(String title, String description, String body, List<String> tagList, User author) {
+  public Article(String slug, String title, String description, String body, List<String> tagList, User author) {
+    this.slug = slug;
     this.title = title;
     this.description = description;
     this.body = body;
     this.tagList = tagList;
     this.author = author;
-  }
-
-  @PrePersist
-  @PreUpdate
-  public void generateSlug() {
-    Slugify slugify = Slugify.builder().build();
-    this.slug = slugify.slugify(this.title);
   }
 }
