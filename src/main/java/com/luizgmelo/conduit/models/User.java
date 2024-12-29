@@ -37,4 +37,6 @@ public class User implements Serializable {
   @OneToMany(mappedBy = "author", fetch = FetchType.LAZY)
   private Set<Comment> comments = new HashSet<>();
 
+  @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+  private UserProfile profile;
 }
