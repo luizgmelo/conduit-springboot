@@ -23,15 +23,13 @@ public class UserService {
   @Autowired
   PasswordEncoder passwordEncoder;
 
-  public User getAuthenticatedUser() {
+  public static User getAuthenticatedUser() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     Object principal = authentication.getPrincipal();
     if (principal instanceof User) {
       return (User) principal;
-    } else {
-      // TODO Threat when user authenticated fails
-      return null;
     }
+    return null;
   }
 
   public User updateCurrentUser(String token, UpdateUserRequestDto data) {

@@ -29,7 +29,7 @@ public class ArticleService {
 
   public Article getArticle(String slug) {
     Optional<Article> articleOpt = articleRepository.findBySlug(slug);
-      return articleOpt.orElse(null);
+    return articleOpt.orElse(null);
   }
 
   public Article createNewArticle(RequestArticleDTO data, User author) {

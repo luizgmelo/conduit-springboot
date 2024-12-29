@@ -7,10 +7,9 @@ import com.luizgmelo.conduit.exceptions.ArticleNotFoundException;
 import com.luizgmelo.conduit.exceptions.OperationNotAllowedException;
 import com.luizgmelo.conduit.exceptions.UserDetailsFailedException;
 import com.luizgmelo.conduit.models.User;
+import com.luizgmelo.conduit.services.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -50,7 +49,7 @@ public class ArticleController {
 
   @PostMapping
   public ResponseEntity<ArticleResponseDTO> createArticle(@RequestBody RequestArticleDTO dto) {
-    User user = getAuthenticatedUser();
+    User user = UserService.getAuthenticatedUser();
     if (user == null) {
       throw new UserDetailsFailedException();
     }
@@ -61,7 +60,7 @@ public class ArticleController {
 
   @PutMapping("/{slug}")
   public ResponseEntity<ArticleResponseDTO> updateArticle(@PathVariable("slug") String slug, @RequestBody ArticleUpdateDto dto) {
-    User user = getAuthenticatedUser();
+    User user = UserService.getAuthenticatedUser();
 
     if (user == null) {
       throw new UserDetailsFailedException();
@@ -86,14 +85,5 @@ public class ArticleController {
   public ResponseEntity<Void> deleteArticle(@PathVariable("slug") String slug) {
     articleService.removeArticle(slug);
     return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-  }
-
-  private User getAuthenticatedUser() {
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    Object principal = authentication.getPrincipal();
-    if (principal instanceof User) {
-      return (User) principal;
-    }
-    return null;
   }
 }

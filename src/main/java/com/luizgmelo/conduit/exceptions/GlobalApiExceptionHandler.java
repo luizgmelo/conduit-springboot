@@ -37,6 +37,12 @@ public class GlobalApiExceptionHandler {
       return ResponseEntity.status(HttpStatus.CONFLICT).body(exception.getMessage());
   }
 
+  @ExceptionHandler(value = CommentNotFoundException.class)
+  public ResponseEntity<String> handleArticleConflictException(CommentNotFoundException exception) {
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(exception.getMessage());
+  }
+
+
   private Map<String, List<String>> getErrorsMap(List<String> errors) {
     Map<String, List<String>> errorResponse = new HashMap<>();
     errorResponse.put("errors", errors);

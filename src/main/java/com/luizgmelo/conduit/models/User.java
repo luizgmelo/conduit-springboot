@@ -1,9 +1,12 @@
 package com.luizgmelo.conduit.models;
 
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -29,5 +32,9 @@ public class User implements Serializable {
 
   private String bio;
   private String image;
+
+  @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+  @OneToMany(mappedBy = "author", fetch = FetchType.LAZY)
+  private Set<Comment> comments = new HashSet<>();
 
 }
