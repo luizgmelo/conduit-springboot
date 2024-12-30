@@ -2,6 +2,9 @@ package com.luizgmelo.conduit.services;
 
 import java.util.Optional;
 
+import com.luizgmelo.conduit.exceptions.UserNotFoundException;
+import com.luizgmelo.conduit.models.UserProfile;
+import com.luizgmelo.conduit.repositories.UserProfileRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -22,6 +25,9 @@ public class UserService {
 
   @Autowired
   PasswordEncoder passwordEncoder;
+
+  @Autowired
+  UserProfileRepository userProfileRepository;
 
   public static User getAuthenticatedUser() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -53,5 +59,32 @@ public class UserService {
       return userRepository.save(user);
     }
     return null;
+  }
+
+  public UserProfile followUser(String followerUsername, String followingUsername) {
+    UserProfile follower = userProfileRepository.findUserProfileByUserUsername(followerUsername)
+            .orElseThrow(() -> new UserNotFoundException("Follower not found"));
+    UserProfile following = userProfileRepository.findUserProfileByUserUsername(followingUsername)
+            .orElseThrow(() -> new UserNotFoundException("Following not found"));
+
+    follower.getFollowing().add(following);
+    userProfileRepository.save(follower);
+    return following;
+  }
+
+  public UserProfile unfollowUser(String followerUsername, String followingUsername) {
+    UserProfile follower = userProfileRepository.findUserProfileByUserUsername(followerUsername)
+            .orElseThrow(() -> new UserNotFoundException("Follower not found"));
+    UserProfile following = userProfileRepository.findUserProfileByUserUsername(followingUsername)
+            .orElseThrow(() -> new UserNotFoundException("Following not found"));
+
+    follower.getFollowing().remove(following);
+    userProfileRepository.save(follower);
+    return following;
+  }
+
+  public UserProfile getProfile(String username) {
+      return userProfileRepository.findUserProfileByUserUsername(username)
+              .orElseThrow(UserNotFoundException::new);
   }
 }
