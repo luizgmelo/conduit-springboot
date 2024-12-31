@@ -31,6 +31,13 @@ public class UserProfile {
     )
     private Set<UserProfile> following = new HashSet<>();
 
+    @ManyToMany
+    @JoinTable(
+            name = "user_favorites",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "article_id")
+    )
+    private Set<Article> favoriteArticles = new HashSet<>();
 
     public UserProfile(User user) {
         this.user = user;

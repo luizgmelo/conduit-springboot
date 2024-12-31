@@ -7,6 +7,8 @@ import com.luizgmelo.conduit.exceptions.ArticleNotFoundException;
 import com.luizgmelo.conduit.exceptions.OperationNotAllowedException;
 import com.luizgmelo.conduit.exceptions.UserDetailsFailedException;
 import com.luizgmelo.conduit.models.User;
+import com.luizgmelo.conduit.models.UserProfile;
+import com.luizgmelo.conduit.services.FavoriteService;
 import com.luizgmelo.conduit.services.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,22 +30,34 @@ import com.luizgmelo.conduit.services.ArticleService;
 public class ArticleController {
 
   private final ArticleService articleService;
+  private final FavoriteService favoriteService;
+  private final UserService userService;
 
-  public ArticleController(ArticleService articleService) {
+  public ArticleController(ArticleService articleService, FavoriteService favoriteService, UserService userService) {
     this.articleService = articleService;
+    this.favoriteService = favoriteService;
+    this.userService = userService;
   }
 
   @GetMapping
   public ResponseEntity<List<ArticleResponseDTO>> getListArticles() {
+    UserProfile userProfile = getProfileUserAuthenticated();
     List<Article> articles = articleService.listArticles();
-    List<ArticleResponseDTO> response = articles.stream().map(ArticleResponseDTO::fromArticle).toList();
+    List<ArticleResponseDTO> response = articles.stream().map(article -> {
+      boolean isFavorited = article.getUsersWhoFavorited().contains(userProfile);
+      boolean isFollowedAuthor = userProfile.getFollowing().contains(article.getAuthor().getProfile());
+      return ArticleResponseDTO.fromArticle(article, isFavorited, isFollowedAuthor);
+    }).toList();
     return ResponseEntity.status(HttpStatus.OK).body(response);
   }
 
   @GetMapping("/{slug}")
   public ResponseEntity<ArticleResponseDTO> getArticle(@PathVariable("slug") String slug) {
+    UserProfile userProfile = getProfileUserAuthenticated();
     Article article = articleService.getArticle(slug);
-    ArticleResponseDTO response = ArticleResponseDTO.fromArticle(article);
+    boolean isFavorited = article.getUsersWhoFavorited().contains(userProfile);
+    boolean isFollowedAuthor = userProfile.getFollowing().contains(article.getAuthor().getProfile());
+    ArticleResponseDTO response = ArticleResponseDTO.fromArticle(article, isFavorited, isFollowedAuthor);
     return ResponseEntity.status(HttpStatus.OK).body(response);
   }
 
@@ -54,7 +68,9 @@ public class ArticleController {
       throw new UserDetailsFailedException();
     }
     Article article = articleService.createNewArticle(dto, user);
-    ArticleResponseDTO response = ArticleResponseDTO.fromArticle(article);
+    boolean isFavorited = article.getUsersWhoFavorited().contains(user.getProfile());
+    boolean isFollowedAuthor = user.getProfile().getFollowing().contains(article.getAuthor().getProfile());
+    ArticleResponseDTO response = ArticleResponseDTO.fromArticle(article, isFavorited, isFollowedAuthor);
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
 
@@ -77,7 +93,9 @@ public class ArticleController {
     }
 
     Article updated = articleService.updateArticle(articleOld, dto);
-    ArticleResponseDTO response = ArticleResponseDTO.fromArticle(updated);
+    boolean isFavorited = updated.getUsersWhoFavorited().contains(user.getProfile());
+    boolean isFollowedAuthor = user.getProfile().getFollowing().contains(updated.getAuthor().getProfile());
+    ArticleResponseDTO response = ArticleResponseDTO.fromArticle(updated, isFavorited, isFollowedAuthor);
     return ResponseEntity.status(HttpStatus.OK).body(response);
   }
 
@@ -85,5 +103,36 @@ public class ArticleController {
   public ResponseEntity<Void> deleteArticle(@PathVariable("slug") String slug) {
     articleService.removeArticle(slug);
     return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+  }
+
+  @PostMapping("/{slug}/favorite")
+  public ResponseEntity<ArticleResponseDTO> addFavorite(@PathVariable String slug) {
+    UserProfile userProfile = getProfileUserAuthenticated();
+
+    Article articleFavorited = favoriteService.addFavorite(userProfile , slug);
+    boolean isFavorited = articleFavorited.getUsersWhoFavorited().contains(userProfile);
+    boolean isFollowedAuthor = userProfile.getFollowing().contains(articleFavorited.getAuthor().getProfile());
+    ArticleResponseDTO response = ArticleResponseDTO.fromArticle(articleFavorited, isFavorited, isFollowedAuthor);
+    return ResponseEntity.status(HttpStatus.OK).body(response);
+  }
+
+  @DeleteMapping("/{slug}/favorite")
+  public ResponseEntity<ArticleResponseDTO> removeFavorite(@PathVariable String slug) {
+    UserProfile userProfile = getProfileUserAuthenticated();
+
+    Article articleFavorited = favoriteService.removeFavorite(userProfile , slug);
+    boolean isFavorited = articleFavorited.getUsersWhoFavorited().contains(userProfile);
+    boolean isFollowedAuthor = userProfile.getFollowing().contains(articleFavorited.getAuthor().getProfile());
+    ArticleResponseDTO response = ArticleResponseDTO.fromArticle(articleFavorited, isFavorited, isFollowedAuthor);
+    return ResponseEntity.status(HttpStatus.OK).body(response);
+  }
+
+  private UserProfile getProfileUserAuthenticated() {
+    User user = UserService.getAuthenticatedUser();
+    if (user == null) {
+      throw new UserDetailsFailedException();
+    }
+
+    return userService.getProfile(user.getUsername());
   }
 }

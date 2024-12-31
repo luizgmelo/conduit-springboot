@@ -56,6 +56,9 @@ public class Article {
   @OneToMany(mappedBy = "commentFrom")
   private Set<Comment> comments;
 
+  @ManyToMany(mappedBy = "favoriteArticles")
+  private Set<UserProfile> usersWhoFavorited = new HashSet<>();
+
   public Article(String slug, String title, String description, String body, List<String> tagList, User author) {
     this.slug = slug;
     this.title = title;
