@@ -43,6 +43,13 @@ public class ArticleService {
     }
   }
 
+  public List<Article> feedArticles(User userAuthenticated, int limit, int offset) {
+    Pageable pageable = PageRequest.of(offset / limit, limit, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+    return articleRepository
+            .findArticlesByFollowedUsers(userAuthenticated.getId(), pageable).getContent();
+  }
+
   public Article getArticle(String slug) {
     Optional<Article> articleOpt = articleRepository.findBySlug(slug);
     return articleOpt.orElse(null);

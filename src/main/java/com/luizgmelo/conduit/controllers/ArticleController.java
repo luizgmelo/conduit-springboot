@@ -39,11 +39,21 @@ public class ArticleController {
                                                                   @RequestParam(defaultValue = "0") int offset) {
     UserProfile userProfile = getProfileUserAuthenticated();
     List<Article> articles = articleService.listArticles(tag, author, favorited, limit, offset);
-    List<ArticleDTO> list = articles.stream().map(article -> {
-      boolean isFavorited = article.getUsersWhoFavorited().contains(userProfile);
-      boolean isFollowedAuthor = userProfile.getFollowing().contains(article.getAuthor().getProfile());
-      return MultipleArticleResponseDTO.fromArticle(article, isFavorited, isFollowedAuthor);
-    }).toList();
+    List<ArticleDTO> list = MultipleArticleResponseDTO.fromListArticle(articles, userProfile);
+    MultipleArticleResponseDTO response = new MultipleArticleResponseDTO(list);
+    return ResponseEntity.status(HttpStatus.OK).body(response);
+  }
+
+  @GetMapping("/feed")
+  public ResponseEntity<MultipleArticleResponseDTO> getFeedArticles(@RequestParam(defaultValue = "20") int limit,
+                                                                    @RequestParam(defaultValue = "0") int offset) {
+    User user = UserService.getAuthenticatedUser();
+    if (user == null) {
+      throw new UserDetailsFailedException();
+    }
+
+    List<Article> feedArticles = articleService.feedArticles(user, limit, offset);
+    List<ArticleDTO> list = MultipleArticleResponseDTO.fromListArticle(feedArticles, user.getProfile());
     MultipleArticleResponseDTO response = new MultipleArticleResponseDTO(list);
     return ResponseEntity.status(HttpStatus.OK).body(response);
   }
