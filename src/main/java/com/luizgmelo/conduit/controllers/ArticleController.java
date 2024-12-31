@@ -12,19 +12,11 @@ import com.luizgmelo.conduit.services.FavoriteService;
 import com.luizgmelo.conduit.services.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.luizgmelo.conduit.models.Article;
 import com.luizgmelo.conduit.services.ArticleService;
 
-// TODO Each endpoint should receive a Dto Request and Return a Dto Response.
 @RestController
 @RequestMapping("/api/articles")
 public class ArticleController {
@@ -40,14 +32,19 @@ public class ArticleController {
   }
 
   @GetMapping
-  public ResponseEntity<List<ArticleResponseDTO>> getListArticles() {
+  public ResponseEntity<MultipleArticleResponseDTO> getListArticles(@RequestParam(required = false) String tag,
+                                                                  @RequestParam(required = false) String author,
+                                                                  @RequestParam(required = false) String favorited,
+                                                                  @RequestParam(defaultValue = "20") int limit,
+                                                                  @RequestParam(defaultValue = "0") int offset) {
     UserProfile userProfile = getProfileUserAuthenticated();
-    List<Article> articles = articleService.listArticles();
-    List<ArticleResponseDTO> response = articles.stream().map(article -> {
+    List<Article> articles = articleService.listArticles(tag, author, favorited, limit, offset);
+    List<ArticleDTO> list = articles.stream().map(article -> {
       boolean isFavorited = article.getUsersWhoFavorited().contains(userProfile);
       boolean isFollowedAuthor = userProfile.getFollowing().contains(article.getAuthor().getProfile());
-      return ArticleResponseDTO.fromArticle(article, isFavorited, isFollowedAuthor);
+      return MultipleArticleResponseDTO.fromArticle(article, isFavorited, isFollowedAuthor);
     }).toList();
+    MultipleArticleResponseDTO response = new MultipleArticleResponseDTO(list);
     return ResponseEntity.status(HttpStatus.OK).body(response);
   }
 

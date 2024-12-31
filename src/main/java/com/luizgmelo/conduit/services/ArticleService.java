@@ -8,6 +8,9 @@ import com.luizgmelo.conduit.models.Tag;
 import com.luizgmelo.conduit.models.User;
 import com.luizgmelo.conduit.repositories.TagRepository;
 import jakarta.transaction.Transactional;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.luizgmelo.conduit.dtos.RequestArticleDTO;
@@ -26,8 +29,18 @@ public class ArticleService {
       this.tagRepository = tagRepository;
   }
 
-  public List<Article> listArticles() {
-    return articleRepository.findAll();
+  public List<Article> listArticles(String tag, String author, String favorited, int limit, int offset) {
+    Pageable pageable = PageRequest.of(offset / limit, limit, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+    if (tag != null) {
+      return articleRepository.findByTag(tag);
+    } else if (author != null) {
+      return articleRepository.findByAuthor(author);
+    } else if (favorited != null) {
+      return articleRepository.findFavoritedByUser(favorited);
+    } else {
+      return articleRepository.findAll(pageable).getContent();
+    }
   }
 
   public Article getArticle(String slug) {
