@@ -23,7 +23,7 @@ public class UserProfile {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "user_following",
             joinColumns = @JoinColumn(name = "follower_id"),

@@ -34,9 +34,6 @@ public class Article {
   @Column(nullable = false)
   private String body;
 
-  @ElementCollection
-  private List<String> tagList;
-
   @CreatedDate
   @Column(nullable = false, updatable = false)
   private LocalDateTime createdAt;
@@ -44,8 +41,6 @@ public class Article {
   @LastModifiedDate
   @Column(nullable = false)
   private LocalDateTime updatedAt;
-
-  private boolean isFavorite;
 
   private int favoritesCount;
 
@@ -59,12 +54,27 @@ public class Article {
   @ManyToMany(mappedBy = "favoriteArticles")
   private Set<UserProfile> usersWhoFavorited = new HashSet<>();
 
-  public Article(String slug, String title, String description, String body, List<String> tagList, User author) {
+  @ManyToMany
+  @JoinTable(
+          name = "articles_tags",
+          joinColumns = @JoinColumn(name = "article_id"),
+          inverseJoinColumns = @JoinColumn(name = "tag_id")
+  )
+  private Set<Tag> tags = new HashSet<>();
+
+  public Article(String slug, String title, String description, String body, Set<Tag> tags, User author) {
     this.slug = slug;
     this.title = title;
     this.description = description;
     this.body = body;
-    this.tagList = tagList;
+    this.tags = tags;
     this.author = author;
+  }
+
+  public List<String> getTagList() {
+    return this.getTags()
+            .stream()
+            .map(Tag::getName)
+            .toList();
   }
 }
