@@ -36,6 +36,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/users/login").permitAll()
                 .requestMatchers("/api/users/register").permitAll()
                 .requestMatchers("/api/articles/{slug}").permitAll()
+                .requestMatchers("/api/tags").permitAll()
                 .requestMatchers(antMatcher(HttpMethod.GET, "/api/articles/{slug}/comments")).permitAll()
                 .requestMatchers(
                         "/v3/api-docs/**",
