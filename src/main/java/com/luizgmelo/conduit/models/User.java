@@ -27,7 +27,7 @@ public class User implements Serializable {
   private String username;
   @Column(unique = true, nullable = false)
   private String email;
-  @Column(unique = true, nullable = false)
+  @Column(nullable = false)
   private String password;
 
   private String bio;
@@ -39,4 +39,10 @@ public class User implements Serializable {
 
   @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
   private UserProfile profile;
+
+  public User(String username, String email, String password) {
+    this.username = username;
+    this.email = email;
+    this.password = password;
+  }
 }

@@ -54,7 +54,7 @@ public class Article {
   @ManyToMany(mappedBy = "favoriteArticles")
   private Set<UserProfile> usersWhoFavorited = new HashSet<>();
 
-  @ManyToMany
+  @ManyToMany(cascade = CascadeType.PERSIST)
   @JoinTable(
           name = "articles_tags",
           joinColumns = @JoinColumn(name = "article_id"),
