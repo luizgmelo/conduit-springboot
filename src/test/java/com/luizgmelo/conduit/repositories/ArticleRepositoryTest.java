@@ -4,12 +4,10 @@ import com.luizgmelo.conduit.models.Article;
 import com.luizgmelo.conduit.models.Tag;
 import com.luizgmelo.conduit.models.User;
 import com.luizgmelo.conduit.models.UserProfile;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import jakarta.persistence.EntityManager;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -29,48 +27,38 @@ public class ArticleRepositoryTest {
     private ArticleRepository articleRepository;
 
     @Autowired
-    private TestEntityManager testEntityManager;
+    private EntityManager entityManager;
 
-    private static final User USER = new User("username", "email", "password");
-    private static final User FOLLOWED = new User("followed", "followed_email", "password");
-    private static final UserProfile USER_PROFILE = new UserProfile(USER);
-    private static final UserProfile FOLLOWED_PROFILE = new UserProfile(FOLLOWED);
-    private static final Article ARTICLE = new Article("slug", "title", "description", "body", Set.of(new Tag("tag")), USER);
-    private static final Article ARTICLE_FOLLOWED = new Article("slug", "title", "description", "body", Set.of(new Tag("tag")), FOLLOWED);
-
-    @BeforeEach
-    void beforeEach() {
-        testEntityManager.persistAndFlush(USER);
-    }
-
-    @AfterEach
-    void afterEach() {
-        testEntityManager.clear();
-        USER.setId(null);
-        FOLLOWED.setId(null);
-    }
 
     @Test
+    @DisplayName("Should get Article successfully by slug from DB")
     void findBySlug_Success() {
-        Article article = testEntityManager.persistFlushFind(ARTICLE);
+        User author = this.createUser();
+        Article article = this.createArticle(author);
 
-        Optional<Article> expected = articleRepository.findBySlug(ARTICLE.getSlug());
+        Optional<Article> expected = articleRepository.findBySlug(article.getSlug());
 
         assertThat(expected.isPresent()).isTrue();
         assertThat(expected.get()).isEqualTo(article);
     }
 
     @Test
+    @DisplayName("Should not get Article by slug because it do not exists in DB")
     void findBySlug_Failed() {
-        Optional<Article> expected = articleRepository.findBySlug(ARTICLE.getSlug());
+        String slug = "slug";
+
+        Optional<Article> expected = articleRepository.findBySlug(slug);
 
         assertThat(expected.isPresent()).isFalse();
         assertThat(expected).isEmpty();
     }
 
+
     @Test
+    @DisplayName("Should get Article successfully by tag from DB")
     void findByTag_Success() {
-        Article article = testEntityManager.persistFlushFind(ARTICLE);
+        User author = this.createUser();
+        Article article = this.createArticle(author);
 
         List<Article> expected = articleRepository.findByTag("tag");
 
@@ -80,15 +68,20 @@ public class ArticleRepositoryTest {
     }
 
     @Test
+    @DisplayName("Should not get Article by tag because it do not exist in DB")
     void findByTag_Failed() {
-        List<Article> expected = articleRepository.findByTag("tag");
+        String tag = "tag";
+
+        List<Article> expected = articleRepository.findByTag(tag);
 
         assertThat(expected).isEmpty();
     }
 
     @Test
+    @DisplayName("Should get a list of Article successfully by author username from DB")
     void findByAuthor_Success() {
-        Article article = testEntityManager.persistFlushFind(ARTICLE);
+        User author = this.createUser();
+        Article article = this.createArticle(author);
 
         List<Article> expected = articleRepository.findByAuthor("username");
 
@@ -98,47 +91,82 @@ public class ArticleRepositoryTest {
     }
 
     @Test
+    @DisplayName("Should not get Article by author username because it do not exist in DB")
     void findByAuthor_Failed() {
         List<Article> expected = articleRepository.findByAuthor("username");
 
         assertThat(expected).isEmpty();
     }
 
-    @Test
-    void findFavoritedByUser() {
-        USER.setProfile(USER_PROFILE);
-        Article article = testEntityManager.persistFlushFind(ARTICLE);
-        USER.getProfile().getFavoriteArticles().add(ARTICLE);
 
-        List<Article> expected = articleRepository.findFavoritedByUser("username");
+    @Test
+    @DisplayName("Should get a list of articles favorited by user authenticated from DB")
+    void findFavoritedByUser() {
+        User author = this.createUser();
+        Article article = this.createArticle(author);
+
+        User authenticated = this.createUser("authenticated", "authenticatedEmail");
+
+        authenticated.getProfile().getFavoriteArticles().add(article);
+
+        List<Article> expected = articleRepository.findFavoritedByUser(authenticated.getUsername());
 
         assertThat(expected.getFirst()).isEqualTo(article);
+        assertThat(expected.getFirst().getAuthor()).isEqualTo(author);
         assertThat(expected.size()).isEqualTo(1);
     }
 
     @Test
+    @DisplayName("Should get a page of Articles from authors that user authenticated follow from DB")
     void findArticlesByFollowedUsers() {
-        USER.setProfile(USER_PROFILE);
-        testEntityManager.persistAndFlush(FOLLOWED);
-        FOLLOWED.setProfile(FOLLOWED_PROFILE);
-        USER.getProfile().getFollowing().add(FOLLOWED_PROFILE);
-        Pageable pageable = PageRequest.of(0, 2);
+        User author = this.createUser();
+        Article article = this.createArticle(author);
 
-        Article article = testEntityManager.persistFlushFind(ARTICLE_FOLLOWED);
+        User authenticated = this.createUser("authenticated", "authenticatedEmail");
 
-        Page<Article> expected = articleRepository.findArticlesByFollowedUsers(USER.getId(), pageable);
+        authenticated.getProfile().getFollowing().add(author.getProfile());
+
+        Pageable pageable = PageRequest.of(0, 1);
+
+        Page<Article> expected = articleRepository.findArticlesByFollowedUsers(authenticated.getId(), pageable);
 
         assertThat(expected.getContent().getFirst()).isEqualTo(article);
-        assertThat(expected.getContent().getFirst().getAuthor()).isEqualTo(article.getAuthor());
+        assertThat(expected.getContent().getFirst().getAuthor()).isEqualTo(author);
         assertThat(expected.getContent().size()).isEqualTo(1);
     }
 
     @Test
+    @DisplayName("Should delete Article successfully from DB")
     void deleteBySlug() {
-        Article article = testEntityManager.persistFlushFind(ARTICLE);
-        articleRepository.deleteBySlug(ARTICLE.getSlug());
+        User author = this.createUser();
+        Article article = this.createArticle(author);
 
-        Article removedArticle = testEntityManager.find(Article.class, article.getId());
+        articleRepository.deleteBySlug(article.getSlug());
+
+        Article removedArticle = entityManager.find(Article.class, article.getId());
         assertThat(removedArticle).isNull();
+    }
+
+
+    private User createUser(String username, String email) {
+        User newUser = new User(username, email, "password");
+        UserProfile newUserProfile = new UserProfile(newUser);
+
+        newUser.setProfile(newUserProfile);
+
+        entityManager.persist(newUser);
+        return newUser;
+    }
+
+    private User createUser() {
+        return this.createUser("username", "email");
+    }
+
+
+    private Article createArticle(User author) {
+        Article newArticle = new Article("slug", "title", "description", "body", Set.of(new Tag("tag")), author);
+
+        entityManager.persist(newArticle);
+        return newArticle;
     }
 }
