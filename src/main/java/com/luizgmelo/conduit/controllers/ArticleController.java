@@ -91,10 +91,6 @@ public class ArticleController {
 
     Article articleOld = articleService.getArticle(slug);
 
-    if (articleOld == null) {
-      throw new ArticleNotFoundException();
-    }
-
     if (!user.getEmail().equals(articleOld.getAuthor().getEmail())) {
       throw new OperationNotAllowedException();
     }

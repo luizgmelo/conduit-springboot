@@ -4,6 +4,7 @@ import java.util.*;
 
 import com.github.slugify.Slugify;
 import com.luizgmelo.conduit.exceptions.ArticleConflictException;
+import com.luizgmelo.conduit.exceptions.ArticleNotFoundException;
 import com.luizgmelo.conduit.models.Tag;
 import com.luizgmelo.conduit.models.User;
 import com.luizgmelo.conduit.repositories.TagRepository;
@@ -26,7 +27,7 @@ public class ArticleService {
 
   public ArticleService(ArticleRepository articleRepository, TagRepository tagRepository) {
     this.articleRepository = articleRepository;
-      this.tagRepository = tagRepository;
+    this.tagRepository = tagRepository;
   }
 
   public List<Article> listArticles(String tag, String author, String favorited, int limit, int offset) {
@@ -52,7 +53,7 @@ public class ArticleService {
 
   public Article getArticle(String slug) {
     Optional<Article> articleOpt = articleRepository.findBySlug(slug);
-    return articleOpt.orElse(null);
+    return articleOpt.orElseThrow(ArticleNotFoundException::new);
   }
 
   public Article createNewArticle(RequestArticleDTO data, User author) {
@@ -60,7 +61,8 @@ public class ArticleService {
     String slug = slugify.slugify(data.title());
     Set<Tag> tags = buildTags(data.tagList());
 
-    if (this.getArticle(slug) != null) {
+    Optional<Article> articleOpt = articleRepository.findBySlug(slug);
+    if (articleOpt.isPresent()) {
       throw new ArticleConflictException();
     }
 
