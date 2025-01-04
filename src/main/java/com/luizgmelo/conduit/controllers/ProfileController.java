@@ -27,6 +27,7 @@ public class ProfileController {
         }
         UserProfile userAuthenticatedProfile = userService.getProfile(userAuthenticated.getUsername());
         UserProfile profile = userService.getProfile(username);
+        // TODO Do a query in database instead of get all data and look for one profile
         boolean isFollowed = userAuthenticatedProfile.getFollowing().contains(profile);
         UserProfileResponseDTO response = UserProfileResponseDTO.fromProfile(profile, isFollowed);
         return ResponseEntity.status(HttpStatus.OK).body(response);
@@ -38,9 +39,8 @@ public class ProfileController {
         if (follower == null) {
             throw new UserDetailsFailedException();
         }
-        UserProfile followerProfile = userService.getProfile(follower.getUsername());
         UserProfile followingProfile = userService.followUser(follower.getUsername(), username);
-        boolean isFollowed = followerProfile.getFollowing().contains(followingProfile);
+        boolean isFollowed = true;
         UserProfileResponseDTO response = UserProfileResponseDTO.fromProfile(followingProfile, isFollowed);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
@@ -51,9 +51,8 @@ public class ProfileController {
         if (follower == null) {
             throw new UserDetailsFailedException();
         }
-        UserProfile followerProfile = userService.getProfile(follower.getUsername());
         UserProfile unfollowingProfile = userService.unfollowUser(follower.getUsername(), username);
-        boolean isFollowed = followerProfile.getFollowing().contains(unfollowingProfile);
+        boolean isFollowed = false;
         UserProfileResponseDTO response = UserProfileResponseDTO.fromProfile(unfollowingProfile, isFollowed);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
