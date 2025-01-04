@@ -11,7 +11,6 @@ import com.luizgmelo.conduit.dtos.MultipleCommentResponseDTO;
 import com.luizgmelo.conduit.exceptions.ArticleNotFoundException;
 import com.luizgmelo.conduit.exceptions.CommentNotFoundException;
 import com.luizgmelo.conduit.exceptions.OperationNotAllowedException;
-import com.luizgmelo.conduit.exceptions.UserDetailsFailedException;
 import com.luizgmelo.conduit.models.User;
 import com.luizgmelo.conduit.services.UserService;
 import org.springframework.http.HttpStatus;
@@ -38,9 +37,12 @@ public class CommentController {
 
   private final ArticleService articleService;
 
-  public CommentController(CommentService commentService, ArticleService articleService) {
+  private final UserService userService;
+
+  public CommentController(CommentService commentService, ArticleService articleService, UserService userService) {
     this.commentService = commentService;
     this.articleService = articleService;
+    this.userService = userService;
   }
 
   @GetMapping
@@ -82,11 +84,7 @@ public class CommentController {
       throw new CommentNotFoundException();
     }
 
-    User user = UserService.getAuthenticatedUser();
-    if (user == null) {
-      throw new UserDetailsFailedException();
-    }
-
+    User user = userService.getAuthenticatedUser();
 
     if (!user.getEmail().equalsIgnoreCase(article.getAuthor().getEmail()) &&
         !user.getEmail().equalsIgnoreCase(comment.getAuthor().getEmail())) {

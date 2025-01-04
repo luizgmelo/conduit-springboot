@@ -4,7 +4,6 @@ import java.util.Optional;
 
 import com.luizgmelo.conduit.dtos.AuthResponseDTO;
 import com.luizgmelo.conduit.dtos.UserDTO;
-import com.luizgmelo.conduit.models.UserProfile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -50,10 +49,6 @@ public class AuthService {
     newUser.setUsername(body.username());
     newUser.setEmail(body.email());
     newUser.setPassword(passwordHash);
-
-    UserProfile newUserProfile = new UserProfile(newUser);
-
-    newUser.setProfile(newUserProfile);
 
     User user = userRepository.save(newUser);
     String token = tokenService.generateToken(user);

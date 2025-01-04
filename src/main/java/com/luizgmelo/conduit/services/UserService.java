@@ -2,10 +2,8 @@ package com.luizgmelo.conduit.services;
 
 import java.util.Optional;
 
+import com.luizgmelo.conduit.exceptions.UserDetailsFailedException;
 import com.luizgmelo.conduit.exceptions.UserNotFoundException;
-import com.luizgmelo.conduit.models.UserProfile;
-import com.luizgmelo.conduit.repositories.UserProfileRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -17,25 +15,25 @@ import com.luizgmelo.conduit.repositories.UserRepository;
 
 @Service
 public class UserService {
-  @Autowired
-  UserRepository userRepository;
+  private final UserRepository userRepository;
 
-  @Autowired
-  TokenService tokenService;
+  private final TokenService tokenService;
 
-  @Autowired
-  PasswordEncoder passwordEncoder;
+  private final PasswordEncoder passwordEncoder;
 
-  @Autowired
-  UserProfileRepository userProfileRepository;
+  public UserService(UserRepository userRepository, TokenService tokenService, PasswordEncoder passwordEncoder) {
+    this.userRepository = userRepository;
+    this.tokenService = tokenService;
+    this.passwordEncoder = passwordEncoder;
+  }
 
-  public static User getAuthenticatedUser() {
+  public User getAuthenticatedUser() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     Object principal = authentication.getPrincipal();
     if (principal instanceof User) {
       return (User) principal;
     }
-    return null;
+    throw new UserDetailsFailedException();
   }
 
   public User updateCurrentUser(String token, UpdateUserRequestDto data) {
@@ -61,30 +59,8 @@ public class UserService {
     return null;
   }
 
-  public UserProfile followUser(String followerUsername, String followingUsername) {
-    UserProfile follower = userProfileRepository.findUserProfileByUserUsername(followerUsername)
-            .orElseThrow(() -> new UserNotFoundException("Follower not found"));
-    UserProfile following = userProfileRepository.findUserProfileByUserUsername(followingUsername)
-            .orElseThrow(() -> new UserNotFoundException("Following not found"));
-
-    follower.getFollowing().add(following);
-    userProfileRepository.save(follower);
-    return following;
-  }
-
-  public UserProfile unfollowUser(String followerUsername, String followingUsername) {
-    UserProfile follower = userProfileRepository.findUserProfileByUserUsername(followerUsername)
-            .orElseThrow(() -> new UserNotFoundException("Follower not found"));
-    UserProfile following = userProfileRepository.findUserProfileByUserUsername(followingUsername)
-            .orElseThrow(() -> new UserNotFoundException("Following not found"));
-
-    follower.getFollowing().remove(following);
-    userProfileRepository.save(follower);
-    return following;
-  }
-
-  public UserProfile getProfile(String username) {
-      return userProfileRepository.findUserProfileByUserUsername(username)
-              .orElseThrow(UserNotFoundException::new);
+  public User getUserByUsername(String username) {
+      return userRepository.findByUsername(username)
+              .orElseThrow(() -> new UserNotFoundException(username + " not found"));
   }
 }

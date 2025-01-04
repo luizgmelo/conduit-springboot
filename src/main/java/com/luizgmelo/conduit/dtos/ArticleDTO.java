@@ -1,7 +1,6 @@
 package com.luizgmelo.conduit.dtos;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.luizgmelo.conduit.models.Article;
 
 import java.time.LocalDateTime;
 import java.util.List;

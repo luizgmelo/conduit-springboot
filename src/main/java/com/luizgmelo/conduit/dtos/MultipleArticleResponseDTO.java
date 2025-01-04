@@ -1,8 +1,7 @@
 package com.luizgmelo.conduit.dtos;
 
 import com.luizgmelo.conduit.models.Article;
-import com.luizgmelo.conduit.models.UserProfile;
-
+import com.luizgmelo.conduit.models.User;
 
 import java.util.List;
 
@@ -15,10 +14,8 @@ public record MultipleArticleResponseDTO(List<ArticleDTO> articles) {
                             isFollowing)
         );
     }
-    public static List<ArticleDTO> fromListArticle(List<Article> articles, UserProfile userProfile) {
+    public static List<ArticleDTO> fromListArticle(List<Article> articles, boolean isFavorited, boolean isFollowedAuthor) {
         return articles.stream().map(article -> {
-            boolean isFavorited = article.getUsersWhoFavorited().contains(userProfile);
-            boolean isFollowedAuthor = userProfile.getFollowing().contains(article.getAuthor().getProfile());
             return fromArticle(article, isFavorited, isFollowedAuthor);
         }).toList();
     }

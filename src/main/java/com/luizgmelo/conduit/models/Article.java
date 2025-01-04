@@ -52,7 +52,7 @@ public class Article {
   private Set<Comment> comments;
 
   @ManyToMany(mappedBy = "favoriteArticles")
-  private Set<UserProfile> usersWhoFavorited = new HashSet<>();
+  private Set<User> usersWhoFavorited = new HashSet<>();
 
   @ManyToMany(cascade = CascadeType.PERSIST)
   @JoinTable(

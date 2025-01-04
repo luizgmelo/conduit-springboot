@@ -3,7 +3,6 @@ package com.luizgmelo.conduit.services;
 import java.util.Set;
 import java.util.UUID;
 
-import com.luizgmelo.conduit.exceptions.UserDetailsFailedException;
 import com.luizgmelo.conduit.models.User;
 import org.springframework.stereotype.Service;
 
@@ -16,9 +15,11 @@ import com.luizgmelo.conduit.repositories.CommentRepository;
 public class CommentService {
 
   private final CommentRepository commentRepository;
+  private final UserService userService;
 
-  public CommentService(CommentRepository commentRepository) {
+  public CommentService(CommentRepository commentRepository, UserService userService) {
     this.commentRepository = commentRepository;
+    this.userService = userService;
   }
 
   public Comment getCommentById(UUID commentId) {
@@ -32,11 +33,7 @@ public class CommentService {
 
   public Comment createComment(Article article, CommentDto commentDto) {
     String comment = commentDto.body();
-    User author = UserService.getAuthenticatedUser();
-
-    if (author == null) {
-      throw new UserDetailsFailedException();
-    }
+    User author = userService.getAuthenticatedUser();
 
     Comment newComment = new Comment(comment, article, author);
 

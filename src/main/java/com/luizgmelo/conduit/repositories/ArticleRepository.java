@@ -21,12 +21,11 @@ public interface ArticleRepository extends JpaRepository<Article, UUID> {
   @Query("SELECT a FROM Article a WHERE a.author.username = :author")
   List<Article> findByAuthor(String author);
 
-  @Query("SELECT a FROM Article a JOIN a.usersWhoFavorited u WHERE u.user.username = :favorited")
+  @Query("SELECT a FROM Article a JOIN a.usersWhoFavorited u WHERE u.username = :favorited")
   List<Article> findFavoritedByUser(@Param("favorited") String favorited);
 
-  @Query("SELECT a FROM Article a " +
-         "JOIN a.author.profile p " +
-         "WHERE p IN (SELECT upf FROM UserProfile up JOIN up.following upf WHERE up.user.id = :userId)")
+  // TODO Fix this query
+  @Query("SELECT a FROM Article a")
   Page<Article> findArticlesByFollowedUsers(UUID userId, Pageable pageable);
 
   void deleteBySlug(String slug);

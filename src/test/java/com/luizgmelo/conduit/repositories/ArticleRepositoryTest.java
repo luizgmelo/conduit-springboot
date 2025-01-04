@@ -1,9 +1,9 @@
 package com.luizgmelo.conduit.repositories;
 
 import com.luizgmelo.conduit.models.Article;
+import com.luizgmelo.conduit.models.Follow;
 import com.luizgmelo.conduit.models.Tag;
 import com.luizgmelo.conduit.models.User;
-import com.luizgmelo.conduit.models.UserProfile;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -107,7 +107,7 @@ public class ArticleRepositoryTest {
 
         User authenticated = this.createUser("authenticated", "authenticatedEmail");
 
-        authenticated.getProfile().getFavoriteArticles().add(article);
+        authenticated.getFavoriteArticles().add(article);
 
         List<Article> expected = articleRepository.findFavoritedByUser(authenticated.getUsername());
 
@@ -124,7 +124,7 @@ public class ArticleRepositoryTest {
 
         User authenticated = this.createUser("authenticated", "authenticatedEmail");
 
-        authenticated.getProfile().getFollowing().add(author.getProfile());
+        this.createFollow(authenticated, author);
 
         Pageable pageable = PageRequest.of(0, 1);
 
@@ -150,9 +150,6 @@ public class ArticleRepositoryTest {
 
     private User createUser(String username, String email) {
         User newUser = new User(username, email, "password");
-        UserProfile newUserProfile = new UserProfile(newUser);
-
-        newUser.setProfile(newUserProfile);
 
         entityManager.persist(newUser);
         return newUser;
@@ -168,5 +165,11 @@ public class ArticleRepositoryTest {
 
         entityManager.persist(newArticle);
         return newArticle;
+    }
+
+    private void createFollow(User follower, User followed) {
+        Follow follow = new Follow(follower, followed);
+
+        entityManager.persist(follow);
     }
 }

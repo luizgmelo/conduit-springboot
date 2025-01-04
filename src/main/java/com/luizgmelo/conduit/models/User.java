@@ -37,8 +37,20 @@ public class User implements Serializable {
   @OneToMany(mappedBy = "author", fetch = FetchType.LAZY)
   private Set<Comment> comments = new HashSet<>();
 
-  @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-  private UserProfile profile;
+  @OneToMany(mappedBy = "follower")
+  private Set<Follow> following = new HashSet<>();
+
+  @OneToMany(mappedBy = "followed")
+  private Set<Follow> followers = new HashSet<>();
+
+  @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+  @ManyToMany(fetch = FetchType.LAZY)
+  @JoinTable(
+          name = "favorites",
+          joinColumns = @JoinColumn(name = "user_id"),
+          inverseJoinColumns = @JoinColumn(name = "article_id")
+  )
+  private Set<Article> favoriteArticles = new HashSet<>();
 
   public User(String username, String email, String password) {
     this.username = username;
