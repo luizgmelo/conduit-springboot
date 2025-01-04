@@ -1,6 +1,5 @@
 package com.luizgmelo.conduit.models;
 
-import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -18,7 +17,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class User implements Serializable {
+public class User {
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   private UUID id;
@@ -43,14 +42,8 @@ public class User implements Serializable {
   @OneToMany(mappedBy = "followed")
   private Set<Follow> followers = new HashSet<>();
 
-  @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-  @ManyToMany(fetch = FetchType.LAZY)
-  @JoinTable(
-          name = "favorites",
-          joinColumns = @JoinColumn(name = "user_id"),
-          inverseJoinColumns = @JoinColumn(name = "article_id")
-  )
-  private Set<Article> favoriteArticles = new HashSet<>();
+  @OneToMany(mappedBy = "user")
+  private Set<Favorite> favoriteArticles = new HashSet<>();
 
   public User(String username, String email, String password) {
     this.username = username;

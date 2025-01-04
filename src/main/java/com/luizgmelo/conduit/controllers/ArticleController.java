@@ -6,6 +6,7 @@ import com.luizgmelo.conduit.dtos.*;
 import com.luizgmelo.conduit.exceptions.OperationNotAllowedException;
 import com.luizgmelo.conduit.models.User;
 import com.luizgmelo.conduit.services.FavoriteService;
+import com.luizgmelo.conduit.services.FollowService;
 import com.luizgmelo.conduit.services.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,11 +22,13 @@ public class ArticleController {
   private final ArticleService articleService;
   private final FavoriteService favoriteService;
   private final UserService userService;
+  private final FollowService followService;
 
-  public ArticleController(ArticleService articleService, FavoriteService favoriteService, UserService userService) {
+  public ArticleController(ArticleService articleService, FavoriteService favoriteService, UserService userService, FollowService followService) {
     this.articleService = articleService;
     this.favoriteService = favoriteService;
     this.userService = userService;
+    this.followService = followService;
   }
 
   @GetMapping
@@ -36,9 +39,7 @@ public class ArticleController {
                                                                   @RequestParam(defaultValue = "0") int offset) {
     User user = userService.getAuthenticatedUser();
     List<Article> articles = articleService.listArticles(tag, author, favorited, limit, offset);
-    List<ArticleDTO> list = MultipleArticleResponseDTO.fromListArticle(articles, false, false);
-    MultipleArticleResponseDTO response = new MultipleArticleResponseDTO(list);
-    return ResponseEntity.status(HttpStatus.OK).body(response);
+    return getMultipleArticleResponseDTOResponseEntity(user, articles);
   }
 
   @GetMapping("/feed")
@@ -46,17 +47,16 @@ public class ArticleController {
                                                                     @RequestParam(defaultValue = "0") int offset) {
     User user = userService.getAuthenticatedUser();
 
-    List<Article> feedArticles = articleService.feedArticles(user, limit, offset);
-    List<ArticleDTO> list = MultipleArticleResponseDTO.fromListArticle(feedArticles, false, false);
-    MultipleArticleResponseDTO response = new MultipleArticleResponseDTO(list);
-    return ResponseEntity.status(HttpStatus.OK).body(response);
+    List<Article> articles = articleService.feedArticles(user, limit, offset);
+    return getMultipleArticleResponseDTOResponseEntity(user, articles);
   }
 
   @GetMapping("/{slug}")
   public ResponseEntity<ArticleResponseDTO> getArticle(@PathVariable("slug") String slug) {
+    User user = userService.getAuthenticatedUser();
     Article article = articleService.getArticle(slug);
-    boolean isFavorited = false;
-    boolean isFollowedAuthor = false;
+    boolean isFavorited = favoriteService.isFavorite(user, article);
+    boolean isFollowedAuthor = followService.isFollowing(user, article.getAuthor());
     ArticleResponseDTO response = ArticleResponseDTO.fromArticle(article, isFavorited, isFollowedAuthor);
     return ResponseEntity.status(HttpStatus.OK).body(response);
   }
@@ -65,9 +65,7 @@ public class ArticleController {
   public ResponseEntity<ArticleResponseDTO> createArticle(@RequestBody RequestArticleDTO dto) {
     User user = userService.getAuthenticatedUser();
     Article article = articleService.createNewArticle(dto, user);
-    boolean isFavorited = false;
-    boolean isFollowedAuthor = false;
-    ArticleResponseDTO response = ArticleResponseDTO.fromArticle(article, isFavorited, isFollowedAuthor);
+    ArticleResponseDTO response = ArticleResponseDTO.fromArticle(article, false, false);
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
 
@@ -82,8 +80,8 @@ public class ArticleController {
     }
 
     Article updated = articleService.updateArticle(articleOld, dto);
-    boolean isFavorited = false;
-    boolean isFollowedAuthor = false;
+    boolean isFavorited = favoriteService.isFavorite(user, updated);
+    boolean isFollowedAuthor = followService.isFollowing(user, updated.getAuthor());
     ArticleResponseDTO response = ArticleResponseDTO.fromArticle(updated, isFavorited, isFollowedAuthor);
     return ResponseEntity.status(HttpStatus.OK).body(response);
   }
@@ -97,22 +95,28 @@ public class ArticleController {
   @PostMapping("/{slug}/favorite")
   public ResponseEntity<ArticleResponseDTO> addFavorite(@PathVariable String slug) {
     User user = userService.getAuthenticatedUser();
-
-    Article articleFavorited = favoriteService.addFavorite(user , slug);
-    boolean isFavorited = false;
-    boolean isFollowedAuthor = false;
-    ArticleResponseDTO response = ArticleResponseDTO.fromArticle(articleFavorited, isFavorited, isFollowedAuthor);
+    Article article = favoriteService.addFavorite(user , slug);
+    boolean isFavorited = true;
+    boolean isFollowedAuthor = followService.isFollowing(user, article.getAuthor());
+    ArticleResponseDTO response = ArticleResponseDTO.fromArticle(article, isFavorited, isFollowedAuthor);
     return ResponseEntity.status(HttpStatus.OK).body(response);
   }
 
   @DeleteMapping("/{slug}/favorite")
   public ResponseEntity<ArticleResponseDTO> removeFavorite(@PathVariable String slug) {
     User user = userService.getAuthenticatedUser();
-
-    Article articleFavorited = favoriteService.removeFavorite(user , slug);
+    Article article = favoriteService.removeFavorite(user , slug);
     boolean isFavorited = false;
-    boolean isFollowedAuthor = false;
-    ArticleResponseDTO response = ArticleResponseDTO.fromArticle(articleFavorited, isFavorited, isFollowedAuthor);
+    boolean isFollowedAuthor = followService.isFollowing(user, article.getAuthor());
+    ArticleResponseDTO response = ArticleResponseDTO.fromArticle(article, isFavorited, isFollowedAuthor);
+    return ResponseEntity.status(HttpStatus.OK).body(response);
+  }
+
+  private ResponseEntity<MultipleArticleResponseDTO> getMultipleArticleResponseDTOResponseEntity(User user, List<Article> articles) {
+    List<ArticleDTO> list = articles.stream().map(article -> MultipleArticleResponseDTO.fromArticle(article,
+            favoriteService.isFavorite(user, article),
+            followService.isFollowing(user, article.getAuthor()))).toList();
+    MultipleArticleResponseDTO response = new MultipleArticleResponseDTO(list);
     return ResponseEntity.status(HttpStatus.OK).body(response);
   }
 }

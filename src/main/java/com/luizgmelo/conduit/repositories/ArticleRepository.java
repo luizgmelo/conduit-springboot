@@ -11,7 +11,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import com.luizgmelo.conduit.models.Article;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-
+// TODO Fix Queries
 public interface ArticleRepository extends JpaRepository<Article, UUID> {
   Optional<Article> findBySlug(String slug);
 
@@ -21,10 +21,9 @@ public interface ArticleRepository extends JpaRepository<Article, UUID> {
   @Query("SELECT a FROM Article a WHERE a.author.username = :author")
   List<Article> findByAuthor(String author);
 
-  @Query("SELECT a FROM Article a JOIN a.usersWhoFavorited u WHERE u.username = :favorited")
+  @Query("SELECT a FROM Article a")
   List<Article> findFavoritedByUser(@Param("favorited") String favorited);
 
-  // TODO Fix this query
   @Query("SELECT a FROM Article a")
   Page<Article> findArticlesByFollowedUsers(UUID userId, Pageable pageable);
 

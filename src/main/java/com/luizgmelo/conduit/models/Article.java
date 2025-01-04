@@ -51,8 +51,8 @@ public class Article {
   @OneToMany(mappedBy = "commentFrom")
   private Set<Comment> comments;
 
-  @ManyToMany(mappedBy = "favoriteArticles")
-  private Set<User> usersWhoFavorited = new HashSet<>();
+  @OneToMany(mappedBy = "article")
+  private Set<Favorite> usersWhoFavorited = new HashSet<>();
 
   @ManyToMany(cascade = CascadeType.PERSIST)
   @JoinTable(
