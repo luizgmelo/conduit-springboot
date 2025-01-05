@@ -1,9 +1,12 @@
 package com.luizgmelo.conduit.services;
 
-import java.util.Set;
 import java.util.UUID;
 
 import com.luizgmelo.conduit.models.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.luizgmelo.conduit.dtos.CommentDto;
@@ -27,8 +30,9 @@ public class CommentService {
   }
 
 
-  public Set<Comment> getAllComments(Article article) {
-    return article.getComments();
+  public Page<Comment> getAllComments(Article article, int page, int size) {
+    Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+    return commentRepository.findByCommentFromId(article.getId(), pageable);
   }
 
   public Comment createComment(Article article, CommentDto commentDto) {
