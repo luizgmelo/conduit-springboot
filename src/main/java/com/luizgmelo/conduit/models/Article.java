@@ -48,10 +48,10 @@ public class Article {
   @JoinColumn(name = "user_id", nullable = false)
   private User author;
 
-  @OneToMany(mappedBy = "commentFrom")
+  @OneToMany(mappedBy = "commentFrom", cascade = CascadeType.ALL)
   private Set<Comment> comments;
 
-  @OneToMany(mappedBy = "article")
+  @OneToMany(mappedBy = "article", cascade = CascadeType.ALL)
   private Set<Favorite> usersWhoFavorited = new HashSet<>();
 
   @ManyToMany(cascade = CascadeType.PERSIST)
