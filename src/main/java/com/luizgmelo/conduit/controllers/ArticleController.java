@@ -8,6 +8,8 @@ import com.luizgmelo.conduit.models.User;
 import com.luizgmelo.conduit.services.FavoriteService;
 import com.luizgmelo.conduit.services.FollowService;
 import com.luizgmelo.conduit.services.UserService;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -35,7 +37,7 @@ public class ArticleController {
   public ResponseEntity<MultipleArticleResponseDTO> getListArticles(@RequestParam(required = false) String tag,
                                                                   @RequestParam(required = false) String author,
                                                                   @RequestParam(required = false) String favorited,
-                                                                  @RequestParam(defaultValue = "20") int limit,
+                                                                  @RequestParam(defaultValue = "20") @Min(0) @Max(50) int limit,
                                                                   @RequestParam(defaultValue = "0") int offset) {
     User user = userService.getAuthenticatedUser();
     List<Article> articles = articleService.listArticles(tag, author, favorited, limit, offset);
@@ -43,7 +45,7 @@ public class ArticleController {
   }
 
   @GetMapping("/feed")
-  public ResponseEntity<MultipleArticleResponseDTO> getFeedArticles(@RequestParam(defaultValue = "20") int limit,
+  public ResponseEntity<MultipleArticleResponseDTO> getFeedArticles(@RequestParam(defaultValue = "20") @Min(0) @Max(50) int limit,
                                                                     @RequestParam(defaultValue = "0") int offset) {
     User user = userService.getAuthenticatedUser();
 
