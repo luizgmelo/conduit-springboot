@@ -15,7 +15,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.luizgmelo.conduit.dtos.RequestArticleDTO;
-import com.luizgmelo.conduit.dtos.ArticleUpdateDto;
 import com.luizgmelo.conduit.models.Article;
 import com.luizgmelo.conduit.repositories.ArticleRepository;
 
@@ -71,7 +70,7 @@ public class ArticleService {
     return articleRepository.save(newArticle);
   }
 
-  public Article updateArticle(Article articleOld, ArticleUpdateDto data) {
+  public Article updateArticle(Article articleOld, RequestArticleDTO data) {
     Slugify slugify = Slugify.builder().build();
     Set<Tag> tags = buildTags(data.tagList());
 

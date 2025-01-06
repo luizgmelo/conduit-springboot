@@ -8,6 +8,7 @@ import com.luizgmelo.conduit.models.User;
 import com.luizgmelo.conduit.services.FavoriteService;
 import com.luizgmelo.conduit.services.FollowService;
 import com.luizgmelo.conduit.services.UserService;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import org.springframework.http.HttpStatus;
@@ -64,7 +65,7 @@ public class ArticleController {
   }
 
   @PostMapping
-  public ResponseEntity<ArticleResponseDTO> createArticle(@RequestBody RequestArticleDTO dto) {
+  public ResponseEntity<ArticleResponseDTO> createArticle(@Valid @RequestBody RequestArticleDTO dto) {
     User user = userService.getAuthenticatedUser();
     Article article = articleService.createNewArticle(dto, user);
     ArticleResponseDTO response = ArticleResponseDTO.fromArticle(article, false, false);
@@ -72,7 +73,7 @@ public class ArticleController {
   }
 
   @PutMapping("/{slug}")
-  public ResponseEntity<ArticleResponseDTO> updateArticle(@PathVariable("slug") String slug, @RequestBody ArticleUpdateDto dto) {
+  public ResponseEntity<ArticleResponseDTO> updateArticle(@PathVariable("slug") String slug, @Valid  @RequestBody RequestArticleDTO dto) {
     User user = userService.getAuthenticatedUser();
 
     Article articleOld = articleService.getArticle(slug);

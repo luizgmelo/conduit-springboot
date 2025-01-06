@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 @ControllerAdvice
-public class GlobalApiExceptionHandler {
+public class  GlobalApiExceptionHandler {
   @ExceptionHandler(value = { ArticleNotFoundException.class, UserProfileNotFoundException.class,
       UserNotFoundException.class })
   public ResponseEntity<Object> handleApiRequestException(ArticleNotFoundException exception) {
