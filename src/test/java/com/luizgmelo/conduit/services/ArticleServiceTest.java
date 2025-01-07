@@ -15,16 +15,25 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Optional;
 import java.util.Set;
+import java.util.List;
 
+import static com.luizgmelo.conduit.util.Constants.ARTICLE;
+import static com.luizgmelo.conduit.util.Constants.USER;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
+@ActiveProfiles("test")
 class ArticleServiceTest {
 
     @InjectMocks
@@ -36,9 +45,47 @@ class ArticleServiceTest {
     @Mock
     private TagRepository tagRepository;
 
-    // CONSTANTS
-    private static final User USER = new User("username", "email", "password");
-    private static final Article ARTICLE = new Article("title", "title", "description", "body", Set.of(new Tag("tag")), USER);
+    @Test
+    @DisplayName("Should return a List of two article filtered by tag from DB")
+    void listArticles_ByTag_Success() {
+        Article secondArticle = new Article("title2", "title2", "description2", "body2", Set.of(new Tag("tag")), USER);
+        Article failedArticle = new Article("title3", "title3", "description3", "body3", Set.of(new Tag("anothertag")), USER);
+
+        Pageable pageable = PageRequest.of(0, 5, Sort.by("createdAt").descending());
+        PageImpl<Article> page = new PageImpl<>(List.of(ARTICLE, secondArticle));
+
+        when(articleRepository.findByTag("tag", pageable)).thenReturn(page);
+
+        List<Article> sut = articleService.listArticles("tag", null, null, 5, 0);
+
+        assertThat(sut).isNotNull();
+        assertThat(sut.size()).isEqualTo(2);
+        assertThat(sut.getFirst().getSlug()).isEqualTo(ARTICLE.getSlug());
+        assertThat(sut.getLast().getSlug()).isEqualTo(secondArticle.getSlug());
+        assertThat(sut).isNotNull();
+        assertThat(sut.contains(failedArticle)).isFalse();
+    }
+
+    @Test
+    @DisplayName("Should return a List of two article filtered by tag from DB")
+    void listArticles_ByAuthor_Success() {
+        Article secondArticle = new Article("title2", "title2", "description2", "body2", Set.of(new Tag("tag")), USER);
+        Article failedArticle = new Article("title3", "title3", "description3", "body3", Set.of(new Tag("anothertag")), new User("teste", "teste@email.com", "testepassword"));
+
+        Pageable pageable = PageRequest.of(0, 5, Sort.by("createdAt").descending());
+        PageImpl<Article> page = new PageImpl<>(List.of(ARTICLE, secondArticle));
+
+        when(articleRepository.findByAuthor(USER.getUsername(), pageable)).thenReturn(page);
+
+        List<Article> sut = articleService.listArticles(null, USER.getUsername(), null, 5, 0);
+
+        assertThat(sut).isNotNull();
+        assertThat(sut.size()).isEqualTo(2);
+        assertThat(sut.getFirst().getSlug()).isEqualTo(ARTICLE.getSlug());
+        assertThat(sut.getLast().getSlug()).isEqualTo(secondArticle.getSlug());
+        assertThat(sut).isNotNull();
+        assertThat(sut.contains(failedArticle)).isFalse();
+    }
 
     @Test
     @DisplayName("Should return Article successfully from DB")
