@@ -5,9 +5,11 @@ import java.util.*;
 import com.github.slugify.Slugify;
 import com.luizgmelo.conduit.exceptions.ArticleConflictException;
 import com.luizgmelo.conduit.exceptions.ArticleNotFoundException;
+import com.luizgmelo.conduit.exceptions.UserNotFoundException;
 import com.luizgmelo.conduit.models.Tag;
 import com.luizgmelo.conduit.models.User;
 import com.luizgmelo.conduit.repositories.TagRepository;
+import com.luizgmelo.conduit.repositories.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -23,21 +25,24 @@ public class ArticleService {
 
   private final ArticleRepository articleRepository;
   private final TagRepository tagRepository;
+  private final UserRepository userRepository;
 
-  public ArticleService(ArticleRepository articleRepository, TagRepository tagRepository) {
+  public ArticleService(ArticleRepository articleRepository, TagRepository tagRepository, UserRepository userRepository) {
     this.articleRepository = articleRepository;
     this.tagRepository = tagRepository;
+    this.userRepository = userRepository;
   }
 
   public List<Article> listArticles(String tag, String author, String favorited, int limit, int offset) {
     Pageable pageable = PageRequest.of(offset / limit, limit, Sort.by(Sort.Direction.DESC, "createdAt"));
 
     if (tag != null) {
-      return articleRepository.findByTag(tag);
+      return articleRepository.findByTag(tag, pageable).getContent();
     } else if (author != null) {
-      return articleRepository.findByAuthor(author);
+      return articleRepository.findByAuthor(author, pageable).getContent();
     } else if (favorited != null) {
-      return articleRepository.findFavoritedByUser(favorited);
+      User userWhoFavorite = userRepository.findByUsername(favorited).orElseThrow(() -> new UserNotFoundException("User who favorited not found"));
+      return articleRepository.findFavoritedByUser(userWhoFavorite.getId(), pageable).getContent();
     } else {
       return articleRepository.findAll(pageable).getContent();
     }

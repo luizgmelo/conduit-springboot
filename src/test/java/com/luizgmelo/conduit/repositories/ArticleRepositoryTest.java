@@ -1,9 +1,7 @@
 package com.luizgmelo.conduit.repositories;
 
-import com.luizgmelo.conduit.models.Article;
-import com.luizgmelo.conduit.models.Follow;
+import com.luizgmelo.conduit.models.*;
 import com.luizgmelo.conduit.models.Tag;
-import com.luizgmelo.conduit.models.User;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,11 +9,11 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Optional;
 import java.util.Set;
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -59,20 +57,22 @@ public class ArticleRepositoryTest {
     void findByTag_Success() {
         User author = this.createUser();
         Article article = this.createArticle(author);
+        Pageable pageable = PageRequest.of(0, 1, Sort.by("createdAt").descending());
 
-        List<Article> expected = articleRepository.findByTag("tag");
+        Page<Article> expected = articleRepository.findByTag("tag", pageable);
 
         assertThat(expected).isNotEmpty();
-        assertThat(expected.size()).isEqualTo(1);
-        assertThat(expected.getFirst()).isEqualTo(article);
+        assertThat(expected.getContent().size()).isEqualTo(1);
+        assertThat(expected.getContent().getFirst()).isEqualTo(article);
     }
 
     @Test
     @DisplayName("Should not get Article by tag because it do not exist in DB")
     void findByTag_Failed() {
         String tag = "tag";
+        Pageable pageable = PageRequest.of(0, 1, Sort.by("createdAt").descending());
 
-        List<Article> expected = articleRepository.findByTag(tag);
+        Page<Article> expected = articleRepository.findByTag(tag, pageable);
 
         assertThat(expected).isEmpty();
     }
@@ -82,18 +82,21 @@ public class ArticleRepositoryTest {
     void findByAuthor_Success() {
         User author = this.createUser();
         Article article = this.createArticle(author);
+        Pageable pageable = PageRequest.of(0, 1, Sort.by("createdAt").descending());
 
-        List<Article> expected = articleRepository.findByAuthor("username");
+        Page<Article> expected = articleRepository.findByAuthor("username", pageable);
 
         assertThat(expected).isNotEmpty();
-        assertThat(expected.size()).isEqualTo(1);
-        assertThat(expected.getFirst().getAuthor()).isEqualTo(article.getAuthor());
+        assertThat(expected.getContent().size()).isEqualTo(1);
+        assertThat(expected.getContent().getFirst().getAuthor()).isEqualTo(article.getAuthor());
     }
 
     @Test
     @DisplayName("Should not get Article by author username because it do not exist in DB")
     void findByAuthor_Failed() {
-        List<Article> expected = articleRepository.findByAuthor("username");
+        Pageable pageable = PageRequest.of(0, 1, Sort.by("createdAt").descending());
+
+        Page<Article> expected = articleRepository.findByAuthor("username", pageable);
 
         assertThat(expected).isEmpty();
     }
@@ -107,13 +110,16 @@ public class ArticleRepositoryTest {
 
         User authenticated = this.createUser("authenticated", "authenticatedEmail");
 
-        authenticated.getFavoriteArticles().add(article);
+        this.createFavorite(authenticated, article);
 
-        List<Article> expected = articleRepository.findFavoritedByUser(authenticated.getUsername());
+        Pageable pageable = PageRequest.of(0, 1, Sort.by("createdAt").descending());
 
-        assertThat(expected.getFirst()).isEqualTo(article);
-        assertThat(expected.getFirst().getAuthor()).isEqualTo(author);
-        assertThat(expected.size()).isEqualTo(1);
+
+        Page<Article> expected = articleRepository.findFavoritedByUser(authenticated.getId(), pageable);
+
+        assertThat(expected.getContent().getFirst()).isEqualTo(article);
+        assertThat(expected.getContent().getFirst().getAuthor()).isEqualTo(author);
+        assertThat(expected.getContent().size()).isEqualTo(1);
     }
 
     @Test
@@ -171,5 +177,11 @@ public class ArticleRepositoryTest {
         Follow follow = new Follow(follower, followed);
 
         entityManager.persist(follow);
+    }
+
+    private void createFavorite(User user, Article article) {
+        Favorite favorite = new Favorite(user, article);
+
+        entityManager.persist(favorite);
     }
 }
