@@ -1,7 +1,6 @@
 package com.luizgmelo.conduit.repositories;
 
 import com.luizgmelo.conduit.models.*;
-import com.luizgmelo.conduit.models.Tag;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,8 +12,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Optional;
-import java.util.Set;
 
+import static com.luizgmelo.conduit.util.Creations.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
@@ -31,8 +30,8 @@ public class ArticleRepositoryTest {
     @Test
     @DisplayName("Should get Article successfully by slug from DB")
     void findBySlug_Success() {
-        User author = this.createUser();
-        Article article = this.createArticle(author);
+        User author = createUser(entityManager);
+        Article article = createArticle(author, entityManager);
 
         Optional<Article> expected = articleRepository.findBySlug(article.getSlug());
 
@@ -55,8 +54,8 @@ public class ArticleRepositoryTest {
     @Test
     @DisplayName("Should get Article successfully by tag from DB")
     void findByTag_Success() {
-        User author = this.createUser();
-        Article article = this.createArticle(author);
+        User author = createUser(entityManager);
+        Article article = createArticle(author, entityManager);
         Pageable pageable = PageRequest.of(0, 1, Sort.by("createdAt").descending());
 
         Page<Article> expected = articleRepository.findByTag("tag", pageable);
@@ -80,8 +79,8 @@ public class ArticleRepositoryTest {
     @Test
     @DisplayName("Should get a list of Article successfully by author username from DB")
     void findByAuthor_Success() {
-        User author = this.createUser();
-        Article article = this.createArticle(author);
+        User author = createUser(entityManager);
+        Article article = createArticle(author, entityManager);
         Pageable pageable = PageRequest.of(0, 1, Sort.by("createdAt").descending());
 
         Page<Article> expected = articleRepository.findByAuthor("username", pageable);
@@ -105,12 +104,12 @@ public class ArticleRepositoryTest {
     @Test
     @DisplayName("Should get a list of articles favorited by user authenticated from DB")
     void findFavoritedByUser() {
-        User author = this.createUser();
-        Article article = this.createArticle(author);
+        User author = createUser(entityManager);
+        Article article = createArticle(author, entityManager);
 
-        User authenticated = this.createUser("authenticated", "authenticatedEmail");
+        User authenticated = createUser("authenticated", "authenticatedEmail", entityManager);
 
-        this.createFavorite(authenticated, article);
+        createFavorite(authenticated, article, entityManager);
 
         Pageable pageable = PageRequest.of(0, 1, Sort.by("createdAt").descending());
 
@@ -125,12 +124,12 @@ public class ArticleRepositoryTest {
     @Test
     @DisplayName("Should get a page of Articles from authors that user authenticated follow from DB")
     void findArticlesByFollowedUsers() {
-        User author = this.createUser();
-        Article article = this.createArticle(author);
+        User author = createUser(entityManager);
+        Article article = createArticle(author, entityManager);
 
-        User authenticated = this.createUser("authenticated", "authenticatedEmail");
+        User authenticated = createUser("authenticated", "authenticatedEmail", entityManager);
 
-        this.createFollow(authenticated, author);
+        createFollow(authenticated, author, entityManager);
 
         Pageable pageable = PageRequest.of(0, 1);
 
@@ -144,44 +143,12 @@ public class ArticleRepositoryTest {
     @Test
     @DisplayName("Should delete Article successfully from DB")
     void deleteBySlug() {
-        User author = this.createUser();
-        Article article = this.createArticle(author);
+        User author = createUser(entityManager);
+        Article article = createArticle(author, entityManager);
 
         articleRepository.deleteBySlug(article.getSlug());
 
         Article removedArticle = entityManager.find(Article.class, article.getId());
         assertThat(removedArticle).isNull();
-    }
-
-
-    private User createUser(String username, String email) {
-        User newUser = new User(username, email, "password");
-
-        entityManager.persist(newUser);
-        return newUser;
-    }
-
-    private User createUser() {
-        return this.createUser("username", "email");
-    }
-
-
-    private Article createArticle(User author) {
-        Article newArticle = new Article("slug", "title", "description", "body", Set.of(new Tag("tag")), author);
-
-        entityManager.persist(newArticle);
-        return newArticle;
-    }
-
-    private void createFollow(User follower, User followed) {
-        Follow follow = new Follow(follower, followed);
-
-        entityManager.persist(follow);
-    }
-
-    private void createFavorite(User user, Article article) {
-        Favorite favorite = new Favorite(user, article);
-
-        entityManager.persist(favorite);
     }
 }
