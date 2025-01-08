@@ -19,7 +19,7 @@ public class  GlobalApiExceptionHandler {
   @ExceptionHandler(value = { ArticleNotFoundException.class, UserProfileNotFoundException.class,
       UserNotFoundException.class })
   public ResponseEntity<Object> handleApiRequestException(ArticleNotFoundException exception) {
-    ExceptionPayload apiException = new ExceptionPayload(exception.getMessage(), exception, HttpStatus.NOT_FOUND,
+    ExceptionPayload apiException = new ExceptionPayload(exception.getMessage(), HttpStatus.NOT_FOUND,
         ZonedDateTime.now(ZoneId.of("America/Recife")));
 
     return new ResponseEntity<>(apiException, HttpStatus.NOT_FOUND);

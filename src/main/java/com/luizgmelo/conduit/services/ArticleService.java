@@ -90,6 +90,7 @@ public class ArticleService {
 
   @Transactional
   public void removeArticle(String slug) {
+    articleRepository.findBySlug(slug).orElseThrow(ArticleNotFoundException::new);
     articleRepository.deleteBySlug(slug);
   }
 

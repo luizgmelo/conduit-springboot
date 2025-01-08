@@ -7,7 +7,6 @@ import com.luizgmelo.conduit.models.Article;
 import com.luizgmelo.conduit.models.Tag;
 import com.luizgmelo.conduit.models.User;
 import com.luizgmelo.conduit.repositories.ArticleRepository;
-import com.luizgmelo.conduit.repositories.TagRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -30,6 +29,7 @@ import static com.luizgmelo.conduit.util.Constants.USER;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -41,9 +41,6 @@ class ArticleServiceTest {
 
     @Mock
     private ArticleRepository articleRepository;
-
-    @Mock
-    private TagRepository tagRepository;
 
     @Test
     @DisplayName("Should return a List of two article filtered by tag from DB")
@@ -106,9 +103,7 @@ class ArticleServiceTest {
 
         when(articleRepository.findBySlug(slug)).thenReturn(Optional.empty());
 
-        ArticleNotFoundException thrown = Assertions.assertThrows(ArticleNotFoundException.class, () -> {
-            articleService.getArticle(slug);
-        });
+        ArticleNotFoundException thrown = Assertions.assertThrows(ArticleNotFoundException.class, () -> articleService.getArticle(slug));
 
         Assertions.assertEquals("Article not found!", thrown.getMessage());
     }
@@ -143,4 +138,24 @@ class ArticleServiceTest {
         assertThatThrownBy(() -> articleService.createNewArticle(data, USER)).isInstanceOf(ArticleConflictException.class);
     }
 
+    @Test
+    @DisplayName("Should remove and article from DB")
+    void removeArticleTestSuccess() {
+        String slug = "slug";
+        when(articleRepository.findBySlug(slug)).thenReturn(Optional.of(ARTICLE));
+
+        articleService.removeArticle(slug);
+
+        verify(articleRepository).deleteBySlug(slug);
+    }
+
+    @Test
+    @DisplayName("Should throws exception because article not exists in BD")
+    void removeArticleTestFailed() {
+        String slug = "slug";
+
+        when(articleRepository.findBySlug(slug)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> articleService.removeArticle(slug)).isInstanceOf(ArticleNotFoundException.class);
+    }
 }
