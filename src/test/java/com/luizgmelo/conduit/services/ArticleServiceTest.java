@@ -7,6 +7,7 @@ import com.luizgmelo.conduit.models.Article;
 import com.luizgmelo.conduit.models.Tag;
 import com.luizgmelo.conduit.models.User;
 import com.luizgmelo.conduit.repositories.ArticleRepository;
+import com.luizgmelo.conduit.repositories.TagRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -41,6 +42,9 @@ class ArticleServiceTest {
 
     @Mock
     private ArticleRepository articleRepository;
+
+    @Mock
+    private TagRepository tagRepository;
 
     @Test
     @DisplayName("Should return a List of two article filtered by tag from DB")
@@ -136,6 +140,24 @@ class ArticleServiceTest {
         when(articleRepository.findBySlug(ARTICLE.getSlug())).thenReturn(Optional.of(ARTICLE));
 
         assertThatThrownBy(() -> articleService.createNewArticle(data, USER)).isInstanceOf(ArticleConflictException.class);
+    }
+
+    @Test
+    @DisplayName("Should update the information of article")
+    void updateArticleTestSuccess() {
+        RequestArticleDTO data = new RequestArticleDTO("new title", "newDescription",
+                "newBody", List.of("newTag"));
+
+        when(articleRepository.save(ARTICLE)).thenReturn(ARTICLE);
+        when(tagRepository.findByName("newTag")).thenReturn(Optional.of(new Tag("newTag")));
+
+        articleService.updateArticle(ARTICLE, data);
+
+
+        assertThat(ARTICLE.getSlug()).isEqualTo("new-title");
+        assertThat(ARTICLE.getDescription()).isEqualTo("newDescription");
+        assertThat(ARTICLE.getBody()).isEqualTo("newBody");
+        assertThat(ARTICLE.getTagList().getFirst()).isEqualTo("newTag");
     }
 
     @Test
