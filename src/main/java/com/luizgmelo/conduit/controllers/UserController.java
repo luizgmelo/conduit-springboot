@@ -2,7 +2,6 @@ package com.luizgmelo.conduit.controllers;
 
 import com.luizgmelo.conduit.dtos.AuthResponseDTO;
 import com.luizgmelo.conduit.dtos.UserDTO;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,11 +21,14 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/user")
 public class UserController {
 
-  @Autowired
-  UserService userService;
+  private final UserService userService;
+
+  public UserController(UserService userService) {
+    this.userService = userService;
+  }
 
   @GetMapping
-  public ResponseEntity<AuthResponseDTO> getCurrentUser(@RequestHeader(name = "Authorization") String tokenBearer) {
+  public ResponseEntity<AuthResponseDTO> getCurrentUser() {
     User user = userService.getAuthenticatedUser();
     UserDTO userDTO = new UserDTO(user.getEmail(), null, user.getUsername(), user.getBio(), user.getImage());
     AuthResponseDTO response = new AuthResponseDTO(userDTO);

@@ -14,30 +14,26 @@ import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.luizgmelo.conduit.models.User;
 
 @Service
-public class TokenService implements ITokenService {
+public class TokenService {
   @Value("${api.security.token.secret}")
   private String secret;
 
-  @Override
   public String generateToken(User user) {
     try {
       Algorithm algorithm = Algorithm.HMAC256(secret);
 
-      String token = JWT.create()
-          .withIssuer("conduit-project")
-          .withIssuedAt(Instant.now())
-          .withSubject(user.getEmail())
-          .withExpiresAt(generateExpirationDate())
-          .sign(algorithm);
-
-      return token;
+        return JWT.create()
+            .withIssuer("conduit-project")
+            .withIssuedAt(Instant.now())
+            .withSubject(user.getEmail())
+            .withExpiresAt(generateExpirationDate())
+            .sign(algorithm);
 
     } catch (JWTCreationException ex) {
       throw new RuntimeException("Error while authenticating");
     }
   }
 
-  @Override
   public String validateToken(String token) {
     try {
       Algorithm algorithm = Algorithm.HMAC256(secret);
