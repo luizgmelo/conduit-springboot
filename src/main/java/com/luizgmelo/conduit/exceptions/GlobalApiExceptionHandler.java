@@ -26,10 +26,10 @@ public class  GlobalApiExceptionHandler {
   }
 
   @ExceptionHandler(value = MethodArgumentNotValidException.class)
-  public ResponseEntity<Object> handleValidationException(MethodArgumentNotValidException exception) {
-    List<String> errors = exception.getBindingResult().getFieldErrors().stream().map(FieldError::getDefaultMessage)
+  public ResponseEntity<List<ExceptionMessage>> handleValidationException(MethodArgumentNotValidException exception) {
+    List<ExceptionMessage> errors = exception.getBindingResult().getFieldErrors().stream().map(ExceptionMessage::new)
         .collect(Collectors.toList());
-    return new ResponseEntity<>(getErrorsMap(errors), HttpStatus.BAD_REQUEST);
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
   }
 
   @ExceptionHandler(value = ArticleConflictException.class)
@@ -40,12 +40,5 @@ public class  GlobalApiExceptionHandler {
   @ExceptionHandler(value = CommentNotFoundException.class)
   public ResponseEntity<String> handleArticleConflictException(CommentNotFoundException exception) {
     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(exception.getMessage());
-  }
-
-
-  private Map<String, List<String>> getErrorsMap(List<String> errors) {
-    Map<String, List<String>> errorResponse = new HashMap<>();
-    errorResponse.put("errors", errors);
-    return errorResponse;
   }
 }
