@@ -33,7 +33,7 @@ public class User {
   private String image;
 
   @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-  @OneToMany(mappedBy = "author", fetch = FetchType.LAZY)
+  @OneToMany(mappedBy = "author", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
   private Set<Comment> comments = new HashSet<>();
 
   @OneToMany(mappedBy = "follower")

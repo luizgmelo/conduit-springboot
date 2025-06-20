@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.UUID;
 
 @Entity
+@Table(name = "tags")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -19,7 +20,7 @@ public class Tag {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(nullable = false)
     private String name;
 
     @ManyToMany(mappedBy = "tags")

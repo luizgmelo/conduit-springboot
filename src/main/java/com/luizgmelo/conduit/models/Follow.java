@@ -8,7 +8,7 @@ import lombok.Setter;
 import java.util.UUID;
 
 @Entity
-@Table(name = "followers")
+@Table(name = "follows")
 @Getter
 @Setter
 @NoArgsConstructor

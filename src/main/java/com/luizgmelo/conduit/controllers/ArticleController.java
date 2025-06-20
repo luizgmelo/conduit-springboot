@@ -64,6 +64,7 @@ public class ArticleController {
     return ResponseEntity.status(HttpStatus.OK).body(response);
   }
 
+  // TODO user Flyway to control article table
   @PostMapping
   public ResponseEntity<ArticleResponseDTO> createArticle(@Valid @RequestBody RequestArticleDTO dto) {
     User user = userService.getAuthenticatedUser();
