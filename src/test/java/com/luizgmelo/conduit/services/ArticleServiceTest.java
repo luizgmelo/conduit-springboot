@@ -1,6 +1,8 @@
 package com.luizgmelo.conduit.services;
 
+import com.luizgmelo.conduit.dtos.CreateArticleDto;
 import com.luizgmelo.conduit.dtos.RequestArticleDTO;
+import com.luizgmelo.conduit.dtos.RequestUpdateArticleDto;
 import com.luizgmelo.conduit.exceptions.ArticleConflictException;
 import com.luizgmelo.conduit.exceptions.ArticleNotFoundException;
 import com.luizgmelo.conduit.models.Article;
@@ -115,8 +117,8 @@ class ArticleServiceTest {
     @Test
     @DisplayName("Should create a new Article in DB")
     void createNewArticleTestSuccess() {
-        RequestArticleDTO data = new RequestArticleDTO(ARTICLE.getTitle(), ARTICLE.getDescription(),
-                                                          ARTICLE.getBody(), ARTICLE.getTagList());
+        RequestArticleDTO data = new RequestArticleDTO(new CreateArticleDto(ARTICLE.getTitle(), ARTICLE.getDescription(),
+                                                          ARTICLE.getBody(), ARTICLE.getTagList()));
 
         when(articleRepository.findBySlug(ARTICLE.getSlug())).thenReturn(Optional.empty());
         when(articleRepository.save(any(Article.class))).thenReturn(ARTICLE);
@@ -129,8 +131,8 @@ class ArticleServiceTest {
     @Test
     @DisplayName("Should throws exception when create a Article that already exists in DB")
     void createNewArticleTestFailed() {
-        RequestArticleDTO data = new RequestArticleDTO(ARTICLE.getTitle(), ARTICLE.getDescription(),
-                ARTICLE.getBody(), ARTICLE.getTagList());
+        RequestArticleDTO data = new RequestArticleDTO(new CreateArticleDto(ARTICLE.getTitle(), ARTICLE.getDescription(),
+                ARTICLE.getBody(), ARTICLE.getTagList()));
 
         when(articleRepository.findBySlug(ARTICLE.getSlug())).thenReturn(Optional.empty());
         when(articleRepository.save(any(Article.class))).thenReturn(ARTICLE);
@@ -145,11 +147,10 @@ class ArticleServiceTest {
     @Test
     @DisplayName("Should update the information of article")
     void updateArticleTestSuccess() {
-        RequestArticleDTO data = new RequestArticleDTO("new title", "newDescription",
-                "newBody", List.of("newTag"));
+        RequestUpdateArticleDto data = new RequestUpdateArticleDto("new title", "newDescription",
+                "newBody");
 
         when(articleRepository.save(ARTICLE)).thenReturn(ARTICLE);
-        when(tagRepository.findByName("newTag")).thenReturn(Optional.of(new Tag("newTag")));
 
         articleService.updateArticle(ARTICLE, data);
 
@@ -157,7 +158,6 @@ class ArticleServiceTest {
         assertThat(ARTICLE.getSlug()).isEqualTo("new-title");
         assertThat(ARTICLE.getDescription()).isEqualTo("newDescription");
         assertThat(ARTICLE.getBody()).isEqualTo("newBody");
-        assertThat(ARTICLE.getTagList().getFirst()).isEqualTo("newTag");
     }
 
     @Test

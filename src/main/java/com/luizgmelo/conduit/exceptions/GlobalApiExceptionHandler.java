@@ -33,12 +33,18 @@ public class  GlobalApiExceptionHandler {
   }
 
   @ExceptionHandler(value = ArticleConflictException.class)
-  public ResponseEntity<String> handleArticleConflictException(ArticleConflictException exception) {
-      return ResponseEntity.status(HttpStatus.CONFLICT).body(exception.getMessage());
+  public ResponseEntity<ExceptionPayload> handleArticleConflictException(ArticleConflictException exception) {
+    ExceptionPayload apiException = new ExceptionPayload(exception.getMessage(), HttpStatus.CONFLICT,
+            ZonedDateTime.now(ZoneId.of("America/Recife")));
+
+      return ResponseEntity.status(HttpStatus.CONFLICT).body(apiException);
   }
 
   @ExceptionHandler(value = CommentNotFoundException.class)
-  public ResponseEntity<String> handleArticleConflictException(CommentNotFoundException exception) {
-    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(exception.getMessage());
+  public ResponseEntity<ExceptionPayload> handleCommentNotFoundException(CommentNotFoundException exception) {
+    ExceptionPayload apiException = new ExceptionPayload(exception.getMessage(), HttpStatus.NOT_FOUND,
+            ZonedDateTime.now(ZoneId.of("America/Recife")));
+
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(apiException);
   }
 }

@@ -29,10 +29,10 @@ public class AuthService {
   }
 
   public AuthResponseDTO login(LoginRequestDto body) {
-    Optional<User> userOpt = userRepository.findByEmail(body.email());
+    Optional<User> userOpt = userRepository.findByEmail(body.user().email());
     if (userOpt.isPresent()) {
       User user = userOpt.get();
-      if (passwordEncoder.matches(body.password(), user.getPassword())) {
+      if (passwordEncoder.matches(body.user().password(), user.getPassword())) {
         String token = tokenService.generateToken(user);
         UserDTO userDTO = new UserDTO(user.getEmail(), token, user.getUsername(), user.getBio(), user.getImage());
         return new AuthResponseDTO(userDTO);
@@ -43,11 +43,11 @@ public class AuthService {
 
   @Transactional
   public AuthResponseDTO register(RegisterRequestDto body) {
-    String passwordHash = passwordEncoder.encode(body.password());
+    String passwordHash = passwordEncoder.encode(body.user().password());
 
     User newUser = new User();
-    newUser.setUsername(body.username());
-    newUser.setEmail(body.email());
+    newUser.setUsername(body.user().username());
+    newUser.setEmail(body.user().email());
     newUser.setPassword(passwordHash);
 
     User user = userRepository.save(newUser);

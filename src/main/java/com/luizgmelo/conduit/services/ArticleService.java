@@ -3,6 +3,7 @@ package com.luizgmelo.conduit.services;
 import java.util.*;
 
 import com.github.slugify.Slugify;
+import com.luizgmelo.conduit.dtos.RequestUpdateArticleDto;
 import com.luizgmelo.conduit.exceptions.ArticleConflictException;
 import com.luizgmelo.conduit.exceptions.ArticleNotFoundException;
 import com.luizgmelo.conduit.exceptions.UserNotFoundException;
@@ -62,28 +63,34 @@ public class ArticleService {
 
   public Article createNewArticle(RequestArticleDTO data, User author) {
     Slugify slugify = Slugify.builder().build();
-    String slug = slugify.slugify(data.title());
-    Set<Tag> tags = buildTags(data.tagList());
+    String slug = slugify.slugify(data.article().title());
+    Set<Tag> tags = buildTags(data.article().tagList());
 
     Optional<Article> articleOpt = articleRepository.findBySlug(slug);
     if (articleOpt.isPresent()) {
       throw new ArticleConflictException();
     }
 
-    Article newArticle = new Article(slug, data.title(), data.description(), data.body(), tags, author);
+    Article newArticle = new Article(slug, data.article().title(), data.article().description(), data.article().body(), tags, author);
 
     return articleRepository.save(newArticle);
   }
 
-  public Article updateArticle(Article articleOld, RequestArticleDTO data) {
+  public Article updateArticle(Article articleOld, RequestUpdateArticleDto data) {
     Slugify slugify = Slugify.builder().build();
-    Set<Tag> tags = buildTags(data.tagList());
 
-    articleOld.setSlug(slugify.slugify(data.title()));
-    articleOld.setTitle(data.title());
-    articleOld.setDescription(data.description());
-    articleOld.setBody(data.body());
-    articleOld.setTags(tags);
+    if (data.title() != null) {
+      articleOld.setSlug(slugify.slugify(data.title()));
+      articleOld.setTitle(data.title());
+    }
+
+    if (data.description() != null) {
+      articleOld.setDescription(data.description());
+    }
+
+    if (data.body() != null) {
+      articleOld.setBody(data.body());
+    }
 
     return articleRepository.save(articleOld);
   }

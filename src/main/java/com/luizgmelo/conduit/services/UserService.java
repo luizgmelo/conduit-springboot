@@ -43,16 +43,16 @@ public class UserService {
     if (userOpt.isPresent()) {
       User user = userOpt.get();
 
-      if (data.email() != null)
-        user.setEmail(data.email());
-      if (data.username() != null)
-        user.setUsername(data.username());
-      if (data.password() != null)
-        user.setPassword(passwordEncoder.encode(data.password()));
-      if (data.bio() != null)
-        user.setBio(data.bio());
-      if (data.image() != null)
-        user.setImage(data.image());
+      if (data.user().email() != null)
+        user.setEmail(data.user().email());
+      if (data.user().username() != null)
+        user.setUsername(data.user().username());
+      if (data.user().password() != null)
+        user.setPassword(passwordEncoder.encode(data.user().password()));
+      if (data.user().bio() != null)
+        user.setBio(data.user().bio());
+      if (data.user().image() != null)
+        user.setImage(data.user().image());
 
       return userRepository.save(user);
     }

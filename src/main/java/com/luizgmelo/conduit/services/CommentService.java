@@ -1,18 +1,17 @@
 package com.luizgmelo.conduit.services;
 
-import java.util.UUID;
-
+import com.luizgmelo.conduit.dtos.CommentRequestDto;
+import com.luizgmelo.conduit.models.Article;
+import com.luizgmelo.conduit.models.Comment;
 import com.luizgmelo.conduit.models.User;
+import com.luizgmelo.conduit.repositories.CommentRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import com.luizgmelo.conduit.dtos.CommentDto;
-import com.luizgmelo.conduit.models.Article;
-import com.luizgmelo.conduit.models.Comment;
-import com.luizgmelo.conduit.repositories.CommentRepository;
+import java.util.UUID;
 
 @Service
 public class CommentService {
@@ -35,8 +34,8 @@ public class CommentService {
     return commentRepository.findByCommentFromId(article.getId(), pageable);
   }
 
-  public Comment createComment(Article article, CommentDto commentDto) {
-    String comment = commentDto.body();
+  public Comment createComment(Article article, CommentRequestDto commentDto) {
+    String comment = commentDto.comment().body();
     User author = userService.getAuthenticatedUser();
 
     Comment newComment = new Comment(comment, article, author);

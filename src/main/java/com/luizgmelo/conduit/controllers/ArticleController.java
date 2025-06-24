@@ -64,7 +64,6 @@ public class ArticleController {
     return ResponseEntity.status(HttpStatus.OK).body(response);
   }
 
-  // TODO user Flyway to control article table
   @PostMapping
   public ResponseEntity<ArticleResponseDTO> createArticle(@Valid @RequestBody RequestArticleDTO dto) {
     User user = userService.getAuthenticatedUser();
@@ -74,7 +73,7 @@ public class ArticleController {
   }
 
   @PutMapping("/{slug}")
-  public ResponseEntity<ArticleResponseDTO> updateArticle(@PathVariable("slug") String slug, @Valid  @RequestBody RequestArticleDTO dto) {
+  public ResponseEntity<ArticleResponseDTO> updateArticle(@PathVariable("slug") String slug, @Valid @RequestBody RequestUpdateArticleDto dto) {
     User user = userService.getAuthenticatedUser();
 
     Article articleOld = articleService.getArticle(slug);
