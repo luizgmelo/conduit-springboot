@@ -1,6 +1,7 @@
 package com.luizgmelo.conduit.services;
 
 import com.luizgmelo.conduit.dtos.CreateArticleDto;
+import com.luizgmelo.conduit.dtos.MultipleArticleResponseDTO;
 import com.luizgmelo.conduit.dtos.RequestArticleDTO;
 import com.luizgmelo.conduit.dtos.RequestUpdateArticleDto;
 import com.luizgmelo.conduit.exceptions.ArticleConflictException;
@@ -59,14 +60,14 @@ class ArticleServiceTest {
 
         when(articleRepository.findByTag("tag", pageable)).thenReturn(page);
 
-        List<Article> sut = articleService.listArticles("tag", null, null, 5, 0);
+        MultipleArticleResponseDTO sut = articleService.listArticles(null, "tag", null, null, 5, 0);
 
         assertThat(sut).isNotNull();
-        assertThat(sut.size()).isEqualTo(2);
-        assertThat(sut.getFirst().getSlug()).isEqualTo(ARTICLE.getSlug());
-        assertThat(sut.getLast().getSlug()).isEqualTo(secondArticle.getSlug());
-        assertThat(sut).isNotNull();
-        assertThat(sut.contains(failedArticle)).isFalse();
+        assertThat(sut.articles()).isNotNull();
+        assertThat(sut.articles().size()).isEqualTo(2);
+        assertThat(sut.articles().getFirst().slug()).isEqualTo(ARTICLE.getSlug());
+        assertThat(sut.articles().getLast().slug()).isEqualTo(secondArticle.getSlug());
+        assertThat(sut.articles().stream().anyMatch(articleDTO -> articleDTO.slug().equalsIgnoreCase(failedArticle.getSlug()))).isFalse();
     }
 
     @Test

@@ -3,6 +3,8 @@ package com.luizgmelo.conduit.services;
 import java.util.*;
 
 import com.github.slugify.Slugify;
+import com.luizgmelo.conduit.dtos.ArticleDTO;
+import com.luizgmelo.conduit.dtos.MultipleArticleResponseDTO;
 import com.luizgmelo.conduit.dtos.RequestUpdateArticleDto;
 import com.luizgmelo.conduit.exceptions.ArticleConflictException;
 import com.luizgmelo.conduit.exceptions.ArticleNotFoundException;
@@ -27,26 +29,37 @@ public class ArticleService {
   private final ArticleRepository articleRepository;
   private final TagRepository tagRepository;
   private final UserRepository userRepository;
+  private final FollowService followService;
+  private final FavoriteService favoriteService;
 
-  public ArticleService(ArticleRepository articleRepository, TagRepository tagRepository, UserRepository userRepository) {
+  public ArticleService(ArticleRepository articleRepository, TagRepository tagRepository, UserRepository userRepository, FollowService followService, FavoriteService favoriteService) {
     this.articleRepository = articleRepository;
     this.tagRepository = tagRepository;
     this.userRepository = userRepository;
+    this.followService = followService;
+    this.favoriteService = favoriteService;
   }
 
-  public List<Article> listArticles(String tag, String author, String favorited, int limit, int offset) {
+  public MultipleArticleResponseDTO listArticles(User user, String tag, String author, String favorited, int limit, int offset) {
     Pageable pageable = PageRequest.of(offset / limit, limit, Sort.by(Sort.Direction.DESC, "createdAt"));
+    List<Article> articles;
 
     if (tag != null) {
-      return articleRepository.findByTag(tag, pageable).getContent();
+      articles = articleRepository.findByTag(tag, pageable).getContent();
     } else if (author != null) {
-      return articleRepository.findByAuthor(author, pageable).getContent();
+      articles = articleRepository.findByAuthor(author, pageable).getContent();
     } else if (favorited != null) {
       User userWhoFavorite = userRepository.findByUsername(favorited).orElseThrow(() -> new UserNotFoundException("User who favorited not found"));
-      return articleRepository.findFavoritedByUser(userWhoFavorite.getId(), pageable).getContent();
+      articles = articleRepository.findFavoritedByUser(userWhoFavorite.getId(), pageable).getContent();
     } else {
-      return articleRepository.findAll(pageable).getContent();
+      articles = articleRepository.findAll(pageable).getContent();
     }
+
+    List<ArticleDTO> list = articles.stream().map(article -> MultipleArticleResponseDTO.fromArticle(article,
+            favoriteService.isFavorite(user, article),
+            followService.isFollowing(user, article.getAuthor()))).toList();
+
+    return new MultipleArticleResponseDTO(list);
   }
 
   public List<Article> feedArticles(User userAuthenticated, int limit, int offset) {
