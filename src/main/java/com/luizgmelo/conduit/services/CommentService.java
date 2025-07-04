@@ -11,9 +11,7 @@ import com.luizgmelo.conduit.models.Comment;
 import com.luizgmelo.conduit.models.User;
 import com.luizgmelo.conduit.repositories.CommentRepository;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -36,9 +34,8 @@ public class CommentService {
     return commentRepository.findById(commentId).orElseThrow(CommentNotFoundException::new);
   }
 
-  public MultipleCommentResponseDTO getAllComments(String slug, int page, int size) {
+  public MultipleCommentResponseDTO getAllComments(String slug, Pageable pageable) {
     Article article = articleService.getArticleBySlug(slug);
-    Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
     Page<Comment> comments = commentRepository.findByCommentFromId(article.getId(), pageable);
     List<CommentDTO> commentDTOList = comments.getContent().stream().map(CommentDTO::fromComment).toList();
     return new MultipleCommentResponseDTO(commentDTOList);
