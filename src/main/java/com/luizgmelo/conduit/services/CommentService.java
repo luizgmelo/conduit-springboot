@@ -14,7 +14,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.UUID;
@@ -57,12 +59,17 @@ public class CommentService {
     Article article = articleService.getArticleBySlug(slug);
     Comment comment = this.getCommentById(commentId);
 
-    if (!user.getEmail().equalsIgnoreCase(article.getAuthor().getEmail())) {
+    if (!comment.getCommentFrom().getId().equals(article.getId())) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O comentário especificado não pertence ao artigo.");
+    }
+
+    boolean isArticleAuthor = user.getEmail().equalsIgnoreCase(article.getAuthor().getEmail());
+    boolean isCommentAuthor = user.getEmail().equalsIgnoreCase(comment.getAuthor().getEmail());
+
+    if (!isArticleAuthor && !isCommentAuthor) {
       throw new OperationNotAllowedException();
     }
 
-    if (comment.getCommentFrom().getSlug().equals(slug)) {
-      commentRepository.delete(comment);
-    }
+    commentRepository.delete(comment);
   }
 }
