@@ -28,14 +28,9 @@ public class ProfileController {
     }
 
     @PostMapping("follow")
-    public ResponseEntity<UserProfileResponseDTO> follow(@PathVariable String username) {
-        User follower = userService.getAuthenticatedUser();
-        User followed = userService.getUserByUsername(username);
-
-        followService.follow(follower, followed);
-
-        UserProfileResponseDTO response = UserProfileResponseDTO.fromProfile(followed, true);
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+    public ResponseEntity<UserProfileResponseDTO> follow(@AuthenticationPrincipal User user,
+                                                         @PathVariable String username) {
+        return ResponseEntity.ok(userService.followUser(user, username));
     }
 
     @DeleteMapping("follow")

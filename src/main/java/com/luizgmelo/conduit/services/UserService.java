@@ -35,6 +35,12 @@ public class UserService {
     return UserProfileResponseDTO.fromProfile(profile, isFollowed);
   }
 
+  public UserProfileResponseDTO followUser(User user, String username) {
+    User followed = this.getUserByUsername(username);
+    followService.follow(user, followed);
+    return UserProfileResponseDTO.fromProfile(followed, true);
+  }
+
   public User getAuthenticatedUser() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     Object principal = authentication.getPrincipal();
