@@ -41,6 +41,12 @@ public class UserService {
     return UserProfileResponseDTO.fromProfile(followed, true);
   }
 
+  public UserProfileResponseDTO unfollowUser(User user, String username) {
+    User unfollowed = this.getUserByUsername(username);
+    followService.unfollow(user, unfollowed);
+    return UserProfileResponseDTO.fromProfile(unfollowed, false);
+  }
+
   public User getAuthenticatedUser() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     Object principal = authentication.getPrincipal();
