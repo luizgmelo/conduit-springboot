@@ -6,6 +6,7 @@ import com.luizgmelo.conduit.services.FollowService;
 import com.luizgmelo.conduit.services.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -21,14 +22,9 @@ public class ProfileController {
     }
 
     @GetMapping
-    public ResponseEntity<UserProfileResponseDTO> getProfile(@PathVariable String username) {
-        User follower = userService.getAuthenticatedUser();
-        User profile = userService.getUserByUsername(username);
-
-        boolean isFollowed = followService.isFollowing(follower, profile);
-
-        UserProfileResponseDTO response = UserProfileResponseDTO.fromProfile(profile, isFollowed);
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+    public ResponseEntity<UserProfileResponseDTO> getProfile(@AuthenticationPrincipal User user,
+                                                             @PathVariable String username) {
+        return ResponseEntity.ok(userService.getUserProfile(user, username));
     }
 
     @PostMapping("follow")

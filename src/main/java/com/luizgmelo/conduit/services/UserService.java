@@ -2,6 +2,7 @@ package com.luizgmelo.conduit.services;
 
 import java.util.Optional;
 
+import com.luizgmelo.conduit.dtos.UserProfileResponseDTO;
 import com.luizgmelo.conduit.exceptions.UserDetailsFailedException;
 import com.luizgmelo.conduit.exceptions.UserNotFoundException;
 import org.springframework.security.core.Authentication;
@@ -15,16 +16,23 @@ import com.luizgmelo.conduit.repositories.UserRepository;
 
 @Service
 public class UserService {
+
   private final UserRepository userRepository;
-
   private final TokenService tokenService;
-
   private final PasswordEncoder passwordEncoder;
+  private final FollowService followService;
 
-  public UserService(UserRepository userRepository, TokenService tokenService, PasswordEncoder passwordEncoder) {
+  public UserService(UserRepository userRepository, TokenService tokenService, PasswordEncoder passwordEncoder, FollowService followService) {
     this.userRepository = userRepository;
     this.tokenService = tokenService;
     this.passwordEncoder = passwordEncoder;
+      this.followService = followService;
+  }
+
+  public UserProfileResponseDTO getUserProfile(User user, String username) {
+    User profile = this.getUserByUsername(username);
+    boolean isFollowed = followService.isFollowing(user, profile);
+    return UserProfileResponseDTO.fromProfile(profile, isFollowed);
   }
 
   public User getAuthenticatedUser() {
