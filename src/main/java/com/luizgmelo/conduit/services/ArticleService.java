@@ -3,11 +3,10 @@ package com.luizgmelo.conduit.services;
 import java.util.*;
 
 import com.github.slugify.Slugify;
-import com.luizgmelo.conduit.dtos.ArticleDTO;
-import com.luizgmelo.conduit.dtos.MultipleArticleResponseDTO;
-import com.luizgmelo.conduit.dtos.RequestUpdateArticleDto;
+import com.luizgmelo.conduit.dtos.*;
 import com.luizgmelo.conduit.exceptions.ArticleConflictException;
 import com.luizgmelo.conduit.exceptions.ArticleNotFoundException;
+import com.luizgmelo.conduit.exceptions.OperationNotAllowedException;
 import com.luizgmelo.conduit.exceptions.UserNotFoundException;
 import com.luizgmelo.conduit.models.Tag;
 import com.luizgmelo.conduit.models.User;
@@ -19,7 +18,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import com.luizgmelo.conduit.dtos.RequestArticleDTO;
 import com.luizgmelo.conduit.models.Article;
 import com.luizgmelo.conduit.repositories.ArticleRepository;
 
@@ -62,19 +60,34 @@ public class ArticleService {
     return new MultipleArticleResponseDTO(list);
   }
 
-  public List<Article> feedArticles(User userAuthenticated, int limit, int offset) {
+  public MultipleArticleResponseDTO feedArticles(User user, int limit, int offset) {
     Pageable pageable = PageRequest.of(offset / limit, limit, Sort.by(Sort.Direction.DESC, "createdAt"));
 
-    return articleRepository
-            .findArticlesByFollowedUsers(userAuthenticated.getId(), pageable).getContent();
+    List<Article> articles = articleRepository.findArticlesByFollowedUsers(user.getId(), pageable).getContent();
+
+    List<ArticleDTO> list = articles.stream().map(article -> MultipleArticleResponseDTO.fromArticle(article,
+            favoriteService.isFavorite(user, article),
+            followService.isFollowing(user, article.getAuthor()))).toList();
+
+    return new MultipleArticleResponseDTO(list);
+
   }
 
-  public Article getArticle(String slug) {
+  public Article getArticleBySlug(String slug) {
+    return articleRepository.findBySlug(slug).orElseThrow(ArticleNotFoundException::new);
+  }
+
+  public ArticleResponseDTO getArticle(User user, String slug) {
     Optional<Article> articleOpt = articleRepository.findBySlug(slug);
-    return articleOpt.orElseThrow(ArticleNotFoundException::new);
+    Article article = articleOpt.orElseThrow(ArticleNotFoundException::new);
+
+    boolean isFavorite = favoriteService.isFavorite(user, article);
+    boolean isFollowedAuthor = followService.isFollowing(user, article.getAuthor());
+
+    return ArticleResponseDTO.fromArticle(article, isFavorite, isFollowedAuthor);
   }
 
-  public Article createNewArticle(RequestArticleDTO data, User author) {
+  public ArticleResponseDTO createNewArticle(RequestArticleDTO data, User author) {
     Slugify slugify = Slugify.builder().build();
     String slug = slugify.slugify(data.article().title());
     Set<Tag> tags = buildTags(data.article().tagList());
@@ -86,10 +99,20 @@ public class ArticleService {
 
     Article newArticle = new Article(slug, data.article().title(), data.article().description(), data.article().body(), tags, author);
 
-    return articleRepository.save(newArticle);
+    Article savedArticle = articleRepository.save(newArticle);
+
+    return ArticleResponseDTO.fromArticle(savedArticle, false, false);
   }
 
-  public Article updateArticle(Article articleOld, RequestUpdateArticleDto data) {
+  public ArticleResponseDTO updateArticle(User user, String slug,RequestUpdateArticleDto data) {
+
+    Optional<Article> articleOpt = articleRepository.findBySlug(slug);
+    Article articleOld = articleOpt.orElseThrow(ArticleNotFoundException::new);
+
+    if (!user.getEmail().equals(articleOld.getAuthor().getEmail())) {
+      throw new OperationNotAllowedException();
+    }
+
     Slugify slugify = Slugify.builder().build();
 
     if (data.title() != null) {
@@ -105,7 +128,12 @@ public class ArticleService {
       articleOld.setBody(data.body());
     }
 
-    return articleRepository.save(articleOld);
+    Article updated = articleRepository.save(articleOld);
+
+    boolean isFavorite = favoriteService.isFavorite(user, updated);
+    boolean isFollowedAuthor = followService.isFollowing(user, updated.getAuthor());
+
+    return ArticleResponseDTO.fromArticle(updated, isFavorite, isFollowedAuthor);
   }
 
   @Transactional
