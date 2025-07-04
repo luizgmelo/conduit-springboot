@@ -1,31 +1,28 @@
 package com.luizgmelo.conduit.services;
 
-import java.util.Optional;
-
+import com.luizgmelo.conduit.dtos.AuthResponseDTO;
+import com.luizgmelo.conduit.dtos.UpdateUserRequestDto;
+import com.luizgmelo.conduit.dtos.UserDTO;
 import com.luizgmelo.conduit.dtos.UserProfileResponseDTO;
 import com.luizgmelo.conduit.exceptions.UserDetailsFailedException;
 import com.luizgmelo.conduit.exceptions.UserNotFoundException;
+import com.luizgmelo.conduit.models.User;
+import com.luizgmelo.conduit.repositories.UserRepository;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.luizgmelo.conduit.dtos.UpdateUserRequestDto;
-import com.luizgmelo.conduit.models.User;
-import com.luizgmelo.conduit.repositories.UserRepository;
-
 @Service
 public class UserService {
 
   private final UserRepository userRepository;
-  private final TokenService tokenService;
   private final PasswordEncoder passwordEncoder;
   private final FollowService followService;
 
-  public UserService(UserRepository userRepository, TokenService tokenService, PasswordEncoder passwordEncoder, FollowService followService) {
+  public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, FollowService followService) {
     this.userRepository = userRepository;
-    this.tokenService = tokenService;
-    this.passwordEncoder = passwordEncoder;
+      this.passwordEncoder = passwordEncoder;
       this.followService = followService;
   }
 
@@ -56,13 +53,7 @@ public class UserService {
     throw new UserDetailsFailedException();
   }
 
-  public User updateCurrentUser(String token, UpdateUserRequestDto data) {
-    String email = tokenService.validateToken(token);
-    Optional<User> userOpt = userRepository.findByEmail(email);
-
-    if (userOpt.isPresent()) {
-      User user = userOpt.get();
-
+  public AuthResponseDTO updateCurrentUser(User user, UpdateUserRequestDto data) {
       if (data.user().email() != null)
         user.setEmail(data.user().email());
       if (data.user().username() != null)
@@ -74,9 +65,9 @@ public class UserService {
       if (data.user().image() != null)
         user.setImage(data.user().image());
 
-      return userRepository.save(user);
-    }
-    return null;
+    User userUpdated = userRepository.save(user);
+    UserDTO userDTO = new UserDTO(userUpdated.getEmail(), null, userUpdated.getUsername(), userUpdated.getBio(), userUpdated.getImage());
+    return new AuthResponseDTO(userDTO);
   }
 
   public User getUserByUsername(String username) {
