@@ -1,41 +1,40 @@
 package com.luizgmelo.conduit.services;
 
-import java.util.*;
-
 import com.github.slugify.Slugify;
 import com.luizgmelo.conduit.dtos.*;
 import com.luizgmelo.conduit.exceptions.ArticleConflictException;
 import com.luizgmelo.conduit.exceptions.ArticleNotFoundException;
 import com.luizgmelo.conduit.exceptions.OperationNotAllowedException;
-import com.luizgmelo.conduit.exceptions.UserNotFoundException;
+import com.luizgmelo.conduit.models.Article;
 import com.luizgmelo.conduit.models.Tag;
 import com.luizgmelo.conduit.models.User;
-import com.luizgmelo.conduit.repositories.TagRepository;
-import com.luizgmelo.conduit.repositories.UserRepository;
+import com.luizgmelo.conduit.repositories.ArticleRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import com.luizgmelo.conduit.models.Article;
-import com.luizgmelo.conduit.repositories.ArticleRepository;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class ArticleService {
 
   private final ArticleRepository articleRepository;
-  private final TagRepository tagRepository;
-  private final UserRepository userRepository;
-  private final FollowService followService;
+    private final FollowService followService;
   private final FavoriteService favoriteService;
+  private final UserService userService;
+  private final TagService tagService;
 
-  public ArticleService(ArticleRepository articleRepository, TagRepository tagRepository, UserRepository userRepository, FollowService followService, FavoriteService favoriteService) {
+  public ArticleService(ArticleRepository articleRepository, FollowService followService, FavoriteService favoriteService, UserService userService, TagService tagService) {
     this.articleRepository = articleRepository;
-    this.tagRepository = tagRepository;
-    this.userRepository = userRepository;
     this.followService = followService;
     this.favoriteService = favoriteService;
+    this.userService = userService;
+    this.tagService = tagService;
   }
 
   public MultipleArticleResponseDTO listArticles(User user, String tag, String author, String favorited, int limit, int offset) {
@@ -47,7 +46,7 @@ public class ArticleService {
     } else if (author != null) {
       articles = articleRepository.findByAuthor(author, pageable).getContent();
     } else if (favorited != null) {
-      User userWhoFavorite = userRepository.findByUsername(favorited).orElseThrow(() -> new UserNotFoundException("User who favorited not found"));
+      User userWhoFavorite = userService.getUserByUsername(favorited);
       articles = articleRepository.findFavoritedByUser(userWhoFavorite.getId(), pageable).getContent();
     } else {
       articles = articleRepository.findAll(pageable).getContent();
@@ -90,7 +89,13 @@ public class ArticleService {
   public ArticleResponseDTO createNewArticle(RequestArticleDTO data, User author) {
     Slugify slugify = Slugify.builder().build();
     String slug = slugify.slugify(data.article().title());
-    Set<Tag> tags = buildTags(data.article().tagList());
+
+    Set<Tag> tags = new HashSet<>();
+
+    for (String name : data.article().tagList()) {
+      Tag tag = tagService.getOrSaveTagByName(name);
+      tags.add(tag);
+    }
 
     Optional<Article> articleOpt = articleRepository.findBySlug(slug);
     if (articleOpt.isPresent()) {
@@ -140,17 +145,5 @@ public class ArticleService {
   public void removeArticle(String slug) {
     articleRepository.findBySlug(slug).orElseThrow(ArticleNotFoundException::new);
     articleRepository.deleteBySlug(slug);
-  }
-
-  private Set<Tag> buildTags(List<String> tagList) {
-    Set<Tag> tags = new HashSet<>();
-
-    for (String name : tagList) {
-      Tag tag = tagRepository.findByName(name)
-              .orElseGet(() -> tagRepository.save(new Tag(name)));
-      tags.add(tag);
-    }
-
-    return tags;
   }
 }

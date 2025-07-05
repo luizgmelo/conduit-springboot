@@ -20,5 +20,10 @@ public class TagService {
                 .stream().map(Tag::getName)
                 .toList();
     }
+
+    public Tag getOrSaveTagByName(String name) {
+        return tagRepository.findByName(name)
+                .orElseGet(() -> tagRepository.save(new Tag(name)));
+    }
 }
 
