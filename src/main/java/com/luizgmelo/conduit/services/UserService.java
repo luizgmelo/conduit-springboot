@@ -4,12 +4,9 @@ import com.luizgmelo.conduit.dtos.AuthResponseDTO;
 import com.luizgmelo.conduit.dtos.UpdateUserRequestDto;
 import com.luizgmelo.conduit.dtos.UserDTO;
 import com.luizgmelo.conduit.dtos.UserProfileResponseDTO;
-import com.luizgmelo.conduit.exceptions.UserDetailsFailedException;
 import com.luizgmelo.conduit.exceptions.UserNotFoundException;
 import com.luizgmelo.conduit.models.User;
 import com.luizgmelo.conduit.repositories.UserRepository;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -42,15 +39,6 @@ public class UserService {
     User unfollowed = this.getUserByUsername(username);
     followService.unfollow(user, unfollowed);
     return UserProfileResponseDTO.fromProfile(unfollowed, false);
-  }
-
-  public User getAuthenticatedUser() {
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    Object principal = authentication.getPrincipal();
-    if (principal instanceof User) {
-      return (User) principal;
-    }
-    throw new UserDetailsFailedException();
   }
 
   public AuthResponseDTO updateCurrentUser(User user, UpdateUserRequestDto data) {
