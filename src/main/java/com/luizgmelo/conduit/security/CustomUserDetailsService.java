@@ -1,4 +1,4 @@
-package com.luizgmelo.conduit.services;
+package com.luizgmelo.conduit.security;
 
 import java.util.ArrayList;
 

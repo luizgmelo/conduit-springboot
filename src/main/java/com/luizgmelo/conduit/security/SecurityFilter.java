@@ -12,7 +12,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.luizgmelo.conduit.models.User;
 import com.luizgmelo.conduit.repositories.UserRepository;
-import com.luizgmelo.conduit.services.TokenService;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

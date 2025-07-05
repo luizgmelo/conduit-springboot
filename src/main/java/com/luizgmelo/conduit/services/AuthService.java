@@ -4,6 +4,7 @@ import java.util.Optional;
 
 import com.luizgmelo.conduit.dtos.AuthResponseDTO;
 import com.luizgmelo.conduit.dtos.UserDTO;
+import com.luizgmelo.conduit.security.TokenService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
