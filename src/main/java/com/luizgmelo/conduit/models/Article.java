@@ -71,6 +71,16 @@ public class Article {
     this.author = author;
   }
 
+  public void incrementFavoritesCount() {
+    this.favoritesCount++;
+  }
+
+  public void decrementFavoritesCount() {
+    if (favoritesCount > 0) {
+      this.favoritesCount--;
+    }
+  }
+
   public List<String> getTagList() {
     return this.getTags()
             .stream()
