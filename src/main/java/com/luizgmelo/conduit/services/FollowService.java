@@ -6,6 +6,10 @@ import com.luizgmelo.conduit.repositories.FollowRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
+import java.util.Set;
+import java.util.UUID;
+
 @Service
 public class FollowService {
 
@@ -13,6 +17,13 @@ public class FollowService {
 
     public FollowService(FollowRepository followRepository) {
         this.followRepository = followRepository;
+    }
+
+    public Set<UUID> findFollowedUserIds(User user, Set<UUID> authorIds) {
+        if (user == null || authorIds.isEmpty()) {
+            return Collections.emptySet();
+        }
+        return followRepository.findFollowedUserIds(user.getId(), authorIds);
     }
 
     public void follow(User follower, User followed) {

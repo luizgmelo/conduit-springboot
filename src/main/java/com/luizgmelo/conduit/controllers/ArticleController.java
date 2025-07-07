@@ -4,7 +4,9 @@ import com.luizgmelo.conduit.dtos.ArticleResponseDTO;
 import com.luizgmelo.conduit.dtos.MultipleArticleResponseDTO;
 import com.luizgmelo.conduit.dtos.RequestArticleDTO;
 import com.luizgmelo.conduit.dtos.RequestUpdateArticleDto;
+import com.luizgmelo.conduit.models.Article;
 import com.luizgmelo.conduit.models.User;
+import com.luizgmelo.conduit.services.ArticleQueryService;
 import com.luizgmelo.conduit.services.ArticleService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
@@ -19,9 +21,11 @@ import org.springframework.web.bind.annotation.*;
 public class ArticleController {
 
   private final ArticleService articleService;
+  private final ArticleQueryService articleQueryService;
 
-  public ArticleController(ArticleService articleService) {
+  public ArticleController(ArticleService articleService, ArticleQueryService articleQueryService) {
     this.articleService = articleService;
+    this.articleQueryService = articleQueryService;
   }
 
   @GetMapping
@@ -31,20 +35,20 @@ public class ArticleController {
                                                                   @RequestParam(required = false) String favorited,
                                                                   @RequestParam(defaultValue = "20") @Min(0) @Max(50) int limit,
                                                                   @RequestParam(defaultValue = "0") int offset) {
-    return ResponseEntity.ok(articleService.listArticles(user, tag, author, favorited, limit, offset));
+    return ResponseEntity.ok(articleQueryService.listArticles(user, tag, author, favorited, limit, offset));
   }
 
   @GetMapping("/feed")
   public ResponseEntity<MultipleArticleResponseDTO> getFeedArticles(@AuthenticationPrincipal User user,
                                                                     @RequestParam(defaultValue = "20") @Min(0) @Max(50) int limit,
                                                                     @RequestParam(defaultValue = "0") int offset) {
-    return ResponseEntity.ok(articleService.feedArticles(user, limit, offset));
+    return ResponseEntity.ok(articleQueryService.feedArticles(user, limit, offset));
   }
 
   @GetMapping("/{slug}")
   public ResponseEntity<ArticleResponseDTO> getArticle(@AuthenticationPrincipal User user,
                                                         @PathVariable("slug") String slug) {
-    return ResponseEntity.ok(articleService.getArticle(user, slug));
+    return ResponseEntity.ok(articleQueryService.getArticle(user, slug));
   }
 
   @PostMapping
@@ -54,9 +58,9 @@ public class ArticleController {
   }
 
   @PutMapping("/{slug}")
-  public ResponseEntity<ArticleResponseDTO> updateArticle(@AuthenticationPrincipal User user,
-                                                          @PathVariable("slug") String slug,
-                                                          @Valid @RequestBody RequestUpdateArticleDto dto) {
+  public ResponseEntity<Article> updateArticle(@AuthenticationPrincipal User user,
+                                               @PathVariable("slug") String slug,
+                                               @Valid @RequestBody RequestUpdateArticleDto dto) {
 
     return ResponseEntity.ok(articleService.updateArticle(user, slug, dto));
   }

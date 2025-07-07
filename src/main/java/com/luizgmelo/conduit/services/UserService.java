@@ -10,6 +10,8 @@ import com.luizgmelo.conduit.repositories.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class UserService {
 
@@ -61,5 +63,13 @@ public class UserService {
   public User getUserByUsername(String username) {
       return userRepository.findByUsername(username)
               .orElseThrow(() -> new UserNotFoundException(username + " not found"));
+  }
+
+  public Optional<User> getUserByEmail(String email) {
+    return userRepository.findByEmail(email);
+  }
+
+  public User saveUser(User user) {
+    return userRepository.save(user);
   }
 }

@@ -16,13 +16,13 @@ public class FavoriteController {
         this.favoriteService = favoriteService;
     }
 
-    @PostMapping("/{slug}/favorite")
+    @PostMapping
     public ResponseEntity<ArticleResponseDTO> addFavorite(@AuthenticationPrincipal User user,
                                                           @PathVariable String slug) {
         return ResponseEntity.ok(favoriteService.addFavorite(user , slug));
     }
 
-    @DeleteMapping("/{slug}/favorite")
+    @DeleteMapping
     public ResponseEntity<ArticleResponseDTO> removeFavorite(@AuthenticationPrincipal User user,
                                                              @PathVariable String slug) {
         return ResponseEntity.ok(favoriteService.removeFavorite(user , slug));

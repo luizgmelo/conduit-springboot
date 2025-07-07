@@ -24,66 +24,15 @@ import java.util.Set;
 public class ArticleService {
 
   private final ArticleRepository articleRepository;
-    private final FollowService followService;
-  private final FavoriteService favoriteService;
-  private final UserService userService;
   private final TagService tagService;
 
-  public ArticleService(ArticleRepository articleRepository, FollowService followService, FavoriteService favoriteService, UserService userService, TagService tagService) {
+  public ArticleService(ArticleRepository articleRepository, TagService tagService) {
     this.articleRepository = articleRepository;
-    this.followService = followService;
-    this.favoriteService = favoriteService;
-    this.userService = userService;
-    this.tagService = tagService;
-  }
-
-  public MultipleArticleResponseDTO listArticles(User user, String tag, String author, String favorited, int limit, int offset) {
-    Pageable pageable = PageRequest.of(offset / limit, limit, Sort.by(Sort.Direction.DESC, "createdAt"));
-    List<Article> articles;
-
-    if (tag != null) {
-      articles = articleRepository.findByTag(tag, pageable).getContent();
-    } else if (author != null) {
-      articles = articleRepository.findByAuthor(author, pageable).getContent();
-    } else if (favorited != null) {
-      User userWhoFavorite = userService.getUserByUsername(favorited);
-      articles = articleRepository.findFavoritedByUser(userWhoFavorite.getId(), pageable).getContent();
-    } else {
-      articles = articleRepository.findAll(pageable).getContent();
-    }
-
-    List<ArticleDTO> list = articles.stream().map(article -> MultipleArticleResponseDTO.fromArticle(article,
-            favoriteService.isFavorite(user, article),
-            followService.isFollowing(user, article.getAuthor()))).toList();
-
-    return new MultipleArticleResponseDTO(list);
-  }
-
-  public MultipleArticleResponseDTO feedArticles(User user, int limit, int offset) {
-    Pageable pageable = PageRequest.of(offset / limit, limit, Sort.by(Sort.Direction.DESC, "createdAt"));
-
-    List<Article> articles = articleRepository.findArticlesByFollowedUsers(user.getId(), pageable).getContent();
-
-    List<ArticleDTO> list = articles.stream().map(article -> MultipleArticleResponseDTO.fromArticle(article,
-            favoriteService.isFavorite(user, article),
-            followService.isFollowing(user, article.getAuthor()))).toList();
-
-    return new MultipleArticleResponseDTO(list);
-
+      this.tagService = tagService;
   }
 
   public Article getArticleBySlug(String slug) {
     return articleRepository.findBySlug(slug).orElseThrow(ArticleNotFoundException::new);
-  }
-
-  public ArticleResponseDTO getArticle(User user, String slug) {
-    Optional<Article> articleOpt = articleRepository.findBySlug(slug);
-    Article article = articleOpt.orElseThrow(ArticleNotFoundException::new);
-
-    boolean isFavorite = favoriteService.isFavorite(user, article);
-    boolean isFollowedAuthor = followService.isFollowing(user, article.getAuthor());
-
-    return ArticleResponseDTO.fromArticle(article, isFavorite, isFollowedAuthor);
   }
 
   public ArticleResponseDTO createNewArticle(RequestArticleDTO data, User author) {
@@ -109,8 +58,7 @@ public class ArticleService {
     return ArticleResponseDTO.fromArticle(savedArticle, false, false);
   }
 
-  public ArticleResponseDTO updateArticle(User user, String slug,RequestUpdateArticleDto data) {
-
+  public Article updateArticle(User user, String slug,RequestUpdateArticleDto data) {
     Optional<Article> articleOpt = articleRepository.findBySlug(slug);
     Article articleOld = articleOpt.orElseThrow(ArticleNotFoundException::new);
 
@@ -133,12 +81,7 @@ public class ArticleService {
       articleOld.setBody(data.body());
     }
 
-    Article updated = articleRepository.save(articleOld);
-
-    boolean isFavorite = favoriteService.isFavorite(user, updated);
-    boolean isFollowedAuthor = followService.isFollowing(user, updated.getAuthor());
-
-    return ArticleResponseDTO.fromArticle(updated, isFavorite, isFollowedAuthor);
+    return articleRepository.save(articleOld);
   }
 
   @Transactional

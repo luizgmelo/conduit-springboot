@@ -8,6 +8,11 @@ import com.luizgmelo.conduit.repositories.FavoriteRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
 @Service
 public class FavoriteService {
     private final FavoriteRepository favoriteRepository;
@@ -18,6 +23,13 @@ public class FavoriteService {
         this.favoriteRepository = favoriteRepository;
         this.followService = followService;
         this.articleService = articleService;
+    }
+
+    public Set<UUID> findFavoritedArticlesIds(User user, List<UUID> articleIds) {
+        if (user == null || articleIds.isEmpty()) {
+            return Collections.emptySet();
+        }
+        return favoriteRepository.findArticleIdsFavoritedByUser(user.getId(), articleIds);
     }
 
     @Transactional
