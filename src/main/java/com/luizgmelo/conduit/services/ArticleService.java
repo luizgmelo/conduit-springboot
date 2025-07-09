@@ -58,7 +58,7 @@ public class ArticleService {
     return ArticleResponseDTO.fromArticle(savedArticle, false, false);
   }
 
-  public Article updateArticle(User user, String slug,RequestUpdateArticleDto data) {
+  public Article updateArticle(User user, String slug, RequestUpdateArticleDto data) {
     Optional<Article> articleOpt = articleRepository.findBySlug(slug);
     Article articleOld = articleOpt.orElseThrow(ArticleNotFoundException::new);
 

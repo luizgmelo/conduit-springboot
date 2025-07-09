@@ -3,7 +3,6 @@ package com.luizgmelo.conduit.services;
 import com.luizgmelo.conduit.dtos.ArticleDTO;
 import com.luizgmelo.conduit.dtos.ArticleResponseDTO;
 import com.luizgmelo.conduit.dtos.MultipleArticleResponseDTO;
-import com.luizgmelo.conduit.exceptions.ArticleNotFoundException;
 import com.luizgmelo.conduit.models.Article;
 import com.luizgmelo.conduit.models.User;
 import com.luizgmelo.conduit.repositories.ArticleRepository;
@@ -11,7 +10,6 @@ import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
